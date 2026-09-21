@@ -7,23 +7,25 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Калькулятор и учёт рулонов полимерной плёнки</title>
-<link rel="manifest" href="./manifest.json">
-  <!-- Favicon connection -->
-<!-- Иконка вкладки браузера и мобильных устройств -->
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
-  <img src="./icon-192.png" alt="Логотип" class="w-10 h-10 rounded-xl object-contain shadow-sm">
 
-  <!-- Tailwind CSS CDN -->
+  <!-- PWA & Favicon -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Typography & FontAwesome Icons -->
+  <!-- Google Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Tailwind Custom Palette & Design System -->
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -31,54 +33,18 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Consolas', 'monospace'],
-          },
-          colors: {
-            brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a',
-              950: '#0f172a',
-            },
-            accent: {
-              emerald: '#059669',
-              teal: '#0d9488',
-              amber: '#d97706',
-              rose: '#e11d48'
-            }
-          },
-          boxShadow: {
-            'subtle': '0 2px 10px -2px rgba(15, 23, 42, 0.05)',
-            'elevated': '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
           }
         }
       }
-    }
+    };
   </script>
 
-  <!-- Mobile-Friendly Touch Optimization & Print Layout Styles -->
   <style>
-    /* Prevent iOS text auto-zoom on inputs */
-    @media screen and (max-width: 768px) {
-      input, select, textarea {
-        font-size: 16px !important;
-      }
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-tap-highlight-color: transparent;
     }
-
-    /* Hide standard scrollbars for fluid horizontal metric cards */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* Remove number arrows */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -87,1511 +53,751 @@
     input[type="number"] {
       -moz-appearance: textfield;
     }
-
-    /* Smooth touch tap highlights */
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Thermal and A4 Printable label styles */
-    @media print {
-      body * {
-        visibility: hidden !important;
-      }
-      #print-modal, #print-modal * {
-        visibility: visible !important;
-      }
-      #print-modal {
-        position: fixed !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        margin: 0 !important;
-        padding: 10px !important;
-        background: #ffffff !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .print-border-thick {
-        border-width: 3px !important;
-        border-color: #000000 !important;
+    @media screen and (max-width: 768px) {
+      input, select, button {
+        font-size: 16px !important;
       }
     }
   </style>
-
-  <!-- Firebase Modular SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      doc, 
-      setDoc, 
-      deleteDoc, 
-      onSnapshot, 
-      getDocs 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window.FirebaseBridge = {
-      initializeApp,
-      getFirestore,
-      collection,
-      doc,
-      setDoc,
-      deleteDoc,
-      onSnapshot,
-      getDocs
-    };
-  </script>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900 pb-20 md:pb-8">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased pb-24 md:pb-8">
 
-  <!-- Top Responsive Header -->
-  <header class="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-14 sm:h-16">
-        
-        <!-- Logo & Title Section -->
-        <div class="flex items-center space-x-2.5 sm:space-x-3.5">
-          <!-- Logo with fallback -->
-          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 border border-blue-400/30 flex-shrink-0">
-            <img 
-              src="./favicon.jpg" 
-              alt="Логотип" 
-              class="w-full h-full object-cover" 
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-            />
-            <div style="display:none;" class="w-full h-full items-center justify-center text-white">
-              <i class="fa-solid fa-scroll text-sm sm:text-base"></i>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center gap-1.5">
-              <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-white leading-tight">
-                Калькулятор Рулонов
-              </h1>
-              <span class="text-[9px] sm:text-[10px] uppercase font-bold bg-blue-500/25 text-blue-300 border border-blue-400/30 px-1.5 py-0.2 rounded-md">PRO</span>
-            </div>
-            <p class="text-[10px] sm:text-xs text-slate-400 hidden xs:block truncate">Полимерные плёнки • ПВД, ПНД, БОПП, ПЭТ</p>
-          </div>
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center shadow-md flex-shrink-0">
+          <img src="./icon-192.png" alt="Лого" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+          <i class="fa-solid fa-compact-disc text-sky-400 text-xl hidden"></i>
         </div>
-
-        <!-- Sync status & Quick Actions -->
-        <div class="flex items-center space-x-2 sm:space-x-3">
-          <!-- Firebase Live status badge -->
-          <div id="cloud-badge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-950/40 text-amber-300 border border-amber-800/60 shadow-inner">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span id="cloud-badge-text" class="font-mono text-[10px] sm:text-xs">Подключение...</span>
-          </div>
-
-          <!-- Quick export button in header on desktop -->
-          <button onclick="App.exportToCSV()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-xl transition">
-            <i class="fa-solid fa-file-excel text-emerald-400"></i>
-            <span>Экспорт CSV</span>
-          </button>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight leading-tight">Калькулятор Рулонов</h1>
+          <p class="text-xs text-slate-400 font-mono hidden sm:block">Точный физический расчёт полимерных плёнок</p>
         </div>
-
       </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="firebaseStatusBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="hidden sm:inline">Firebase: </span>В сети
+        </div>
+        <button onclick="exportBatchToCSV()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors">
+          <i class="fa-solid fa-file-csv text-sky-400"></i>
+          <span class="hidden sm:inline">Экспорт</span> CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Вкладки (ПК) -->
+    <div class="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80 gap-6">
+      <button onclick="switchTab('calc')" id="tabBtn-calc" class="py-2.5 border-b-2 border-sky-500 text-sky-400 text-sm font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-calculator"></i> Калькулятор намотки
+      </button>
+      <button onclick="switchTab('journal')" id="tabBtn-journal" class="py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-medium flex items-center gap-2">
+        <i class="fa-solid fa-list-check"></i> Журнал партии <span id="journalCountBadge" class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-slate-800 text-slate-300 font-mono">0</span>
+      </button>
+      <button onclick="switchTab('help')" id="tabBtn-help" class="py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-medium flex items-center gap-2">
+        <i class="fa-solid fa-book-open"></i> Справочник формул
+      </button>
     </div>
   </header>
 
-  <!-- Desktop Tabs (Hidden on small mobile screens in favor of Bottom Nav) -->
-  <div class="hidden md:block bg-white border-b border-slate-200 sticky top-16 z-30 shadow-subtle">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-12">
-        <nav class="flex space-x-2">
-          <button id="dtab-calc" onclick="App.switchTab('calc')" class="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white flex items-center gap-2 transition shadow-sm">
-            <i class="fa-solid fa-calculator"></i>
-            <span>Калькулятор намотки</span>
-          </button>
-          <button id="dtab-batch" onclick="App.switchTab('batch')" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-            <i class="fa-solid fa-boxes-stacked"></i>
-            <span>Журнал партий</span>
-            <span id="desktop-batch-count" class="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-mono text-[10px]">0</span>
-          </button>
-          <button id="dtab-guide" onclick="App.switchTab('guide')" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-            <i class="fa-solid fa-book-bookmark"></i>
-            <span>Справочник плотностей & Формулы</span>
-          </button>
-        </nav>
+  <!-- ОСНОВНОЙ БЛОК -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
-        <div class="text-xs text-slate-500 flex items-center gap-2 font-mono">
-          <i class="fa-solid fa-shield-halved text-blue-500"></i>
-          <span>Автосохранение в облако</span>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- ВКЛАДКА 1: КАЛЬКУЛЯТОР -->
+    <div id="view-calc" class="space-y-6">
 
-  <!-- Main Content Area -->
-  <main class="flex-grow max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-4 sm:space-y-6">
-
-    <!-- ================================================================= -->
-    <!-- VIEW 1: INTERACTIVE CALCULATOR (MOBILE-OPTIMIZED)                  -->
-    <!-- ================================================================= -->
-    <section id="view-calc" class="space-y-4 sm:space-y-6">
-      
-      <!-- Top Quick Preset Pills (Finger friendly) -->
-      <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-subtle">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-sliders text-blue-600"></i> Быстрый выбор полимера:
+      <!-- Пресеты полимеров -->
+      <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700/60 shadow-lg">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-cubes text-sky-400"></i> Выбор полимера
           </span>
-          <button onclick="App.resetToDefault()" class="text-[11px] text-slate-400 hover:text-blue-600 transition flex items-center gap-1">
-            <i class="fa-solid fa-rotate-left"></i>
-            <span class="hidden xs:inline">Сброс</span>
-          </button>
+          <span class="text-xs text-slate-500 font-mono">ρ (г/см³)</span>
         </div>
-
-        <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5">
-          <button onclick="App.setMaterial('BOPP', 0.905)" data-mat="BOPP" class="mat-btn active-mat flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-blue-600 bg-blue-50 text-blue-700 transition">
-            БОПП (0.905)
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          <button type="button" onclick="setPreset('БОПП', 0.905, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col border-sky-500 bg-sky-950/40">
+            <span class="text-xs font-semibold text-white">БОПП</span>
+            <span class="text-[11px] text-slate-300 font-mono">0.905</span>
           </button>
-          <button onclick="App.setMaterial('LDPE', 0.920)" data-mat="LDPE" class="mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
-            ПВД (0.920)
+          <button type="button" onclick="setPreset('ПВД', 0.920, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
+            <span class="text-xs font-semibold text-white">ПВД</span>
+            <span class="text-[11px] text-slate-300 font-mono">0.920</span>
           </button>
-          <button onclick="App.setMaterial('HDPE', 0.950)" data-mat="HDPE" class="mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
-            ПНД (0.950)
+          <button type="button" onclick="setPreset('ПНД', 0.950, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
+            <span class="text-xs font-semibold text-white">ПНД</span>
+            <span class="text-[11px] text-slate-300 font-mono">0.950</span>
           </button>
-          <button onclick="App.setMaterial('LLDPE', 0.918)" data-mat="LLDPE" class="mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
-            Стретч (0.918)
+          <button type="button" onclick="setPreset('Стретч', 0.918, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
+            <span class="text-xs font-semibold text-white">Стретч</span>
+            <span class="text-[11px] text-slate-300 font-mono">0.918</span>
           </button>
-          <button onclick="App.setMaterial('PET', 1.400)" data-mat="PET" class="mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
-            ПЭТ (1.400)
+          <button type="button" onclick="setPreset('ПЭТ', 1.400, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
+            <span class="text-xs font-semibold text-white">ПЭТ</span>
+            <span class="text-[11px] text-slate-300 font-mono">1.400</span>
           </button>
-          <button onclick="App.setMaterial('CUSTOM', null)" data-mat="CUSTOM" class="mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
-            Свой ρ
+          <button type="button" onclick="setPreset('Свой', null, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
+            <span class="text-xs font-semibold text-white">Свой вариант</span>
+            <span class="text-[11px] text-slate-300 font-mono">ручной ввод</span>
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Physical Dimensions Input Panel -->
-        <div class="lg:col-span-5 space-y-4">
-          
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-subtle space-y-4">
-            <h2 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <span class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                Геометрия полотна и втулка
-              </span>
-              <span class="text-[10px] font-mono text-slate-400 font-normal">Параметры плёнки</span>
-            </h2>
+        <!-- ЛЕВАЯ КОЛОНКА: ВХОДНЫЕ ПАРАМЕТРЫ МАТЕРИАЛА И ВТУЛКИ -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg space-y-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-700/60 pb-3">
+              <i class="fa-solid fa-ruler-combined text-sky-400"></i> Геометрия полотна и втулка
+            </h3>
 
-            <!-- Width & Thickness Inputs (Touch friendly) -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Ширина, W</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition">
-                  <input 
-                    type="number" 
-                    id="inp-width" 
-                    value="500" 
-                    min="10" 
-                    max="4000" 
-                    step="1" 
-                    inputmode="numeric" 
-                    oninput="App.onMainParamChange()" 
-                    class="w-full bg-transparent p-2.5 text-sm font-bold text-slate-800 focus:outline-none pr-10 font-mono" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">мм</span>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Ширина полотна (W)</label>
+                <div class="relative">
+                  <input type="number" id="inp-width" value="1320" step="any" min="1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">мм</span>
                 </div>
               </div>
 
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Толщина, t</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition">
-                  <input 
-                    type="number" 
-                    id="inp-thickness" 
-                    value="30" 
-                    min="1" 
-                    max="2000" 
-                    step="0.5" 
-                    inputmode="decimal" 
-                    oninput="App.onMainParamChange()" 
-                    class="w-full bg-transparent p-2.5 text-sm font-bold text-slate-800 focus:outline-none pr-10 font-mono" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">мкм</span>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Толщина (t)</label>
+                <div class="relative">
+                  <input type="number" id="inp-thickness" value="50" step="any" min="0.1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">мкм</span>
                 </div>
               </div>
             </div>
 
-            <!-- Density & Core Diameter -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Плотность, ρ</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition">
-                  <input 
-                    type="number" 
-                    id="inp-density" 
-                    value="0.905" 
-                    min="0.5" 
-                    max="3.0" 
-                    step="0.001" 
-                    inputmode="decimal" 
-                    oninput="App.onManualDensityChange()" 
-                    class="w-full bg-transparent p-2.5 text-sm font-bold text-slate-800 focus:outline-none pr-12 font-mono" 
-                  />
-                  <span class="absolute right-2 top-2.5 text-[10px] font-medium text-slate-400 pointer-events-none">г/см³</span>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Плотность (ρ)</label>
+                <div class="relative">
+                  <input type="number" id="inp-density" value="0.905" step="0.001" min="0.1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">г/см³</span>
                 </div>
               </div>
 
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Втулка (шпуля), d</label>
-                <div class="flex items-center gap-1.5">
-                  <select id="inp-core-preset" onchange="App.onCorePresetChange(this.value)" class="w-1/2 p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:ring-2 focus:ring-blue-100 focus:outline-none">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Диаметр шпули (d)</label>
+                <div class="flex gap-2">
+                  <select id="sel-core" onchange="applyCoreSelect()" class="w-1/2 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2.5 text-xs text-slate-300 outline-none">
                     <option value="76" selected>76 мм (3")</option>
                     <option value="152">152 мм (6")</option>
-                    <option value="CUSTOM">Другой</option>
+                    <option value="other">Свой</option>
                   </select>
-                  <div class="w-1/2 relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition">
-                    <input 
-                      type="number" 
-                      id="inp-core" 
-                      value="76" 
-                      min="10" 
-                      max="500" 
-                      step="1" 
-                      inputmode="numeric" 
-                      oninput="App.onMainParamChange()" 
-                      class="w-full bg-transparent p-2.5 text-sm font-bold text-slate-800 text-center focus:outline-none font-mono" 
-                    />
+                  <div class="relative w-1/2">
+                    <input type="number" id="inp-core" value="76" step="any" min="1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
+                    <span class="absolute right-2 top-2.5 text-xs text-slate-500 font-mono">мм</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Compact Winding Slider (k factor) -->
-            <div class="pt-1">
+            <div>
               <div class="flex justify-between items-center text-xs mb-1">
-                <span class="font-bold text-slate-600 flex items-center gap-1">
-                  <span>Фактор плотности намотки (k):</span>
-                  <span title="Учитывает воздушную прослойку при намотке рулона. 1.00 — теоретическая монолитная намотка. 0.95-0.98 — стандартная заводская намотка." class="cursor-help text-slate-400"><i class="fa-solid fa-circle-info text-[11px]"></i></span>
-                </span>
-                <span id="lbl-k-value" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs">1.00</span>
+                <span class="font-medium text-slate-400">Фактор плотности намотки (k):</span>
+                <span id="label-kfactor" class="font-mono text-sky-400 font-semibold">1.00</span>
               </div>
-              <input 
-                type="range" 
-                id="inp-k" 
-                min="0.90" 
-                max="1.05" 
-                step="0.01" 
-                value="1.00" 
-                oninput="App.onKSliderChange(this.value)" 
-                class="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
-              />
-              <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                <span>0.90 (рыхлая)</span>
+              <input type="range" id="inp-kfactor" min="0.85" max="1.15" step="0.01" value="1.00" oninput="document.getElementById('label-kfactor').innerText=parseFloat(this.value).toFixed(2); onBaseParamChanged();" class="w-full accent-sky-500 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-0.5">
+                <span>0.85 (рыхлая)</span>
                 <span>1.00 (теория)</span>
-                <span>1.05 (плотная)</span>
+                <span>1.15 (плотная)</span>
               </div>
             </div>
 
-            <!-- Quick Naming Input -->
-            <div class="pt-2 border-t border-slate-100">
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Маркировка / Номер партии (опционально)</label>
-              <input 
-                type="text" 
-                id="inp-roll-name" 
-                placeholder="Напр.: Партия #104 (БОПП)" 
-                class="w-full p-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 focus:outline-none"
-              />
+            <div class="pt-2 border-t border-slate-700/60">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Маркировка рулона / партии (опционально)</label>
+              <input type="text" id="inp-batch-name" placeholder="Напр.: Рулон #1 (БОПП 50мкм)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none">
             </div>
 
-            <!-- Add to Firebase / Batch button (Touch friendly height >= 48px) -->
-            <button 
-              type="button" 
-              onclick="App.addActiveRollToBatch()" 
-              class="w-full min-h-[48px] py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition"
-            >
-              <i class="fa-solid fa-cloud-arrow-up text-base"></i>
-              <span>Записать в журнал / Firebase</span>
+            <button type="button" onclick="saveCurrentRollToDatabase()" class="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-semibold shadow-lg shadow-sky-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+              <i class="fa-solid fa-cloud-arrow-up text-lg"></i> Записать в журнал / Firebase
             </button>
-
           </div>
 
-          <!-- Mini 2D SVG Roll Representation (Scales responsively) -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-subtle flex flex-col items-center">
-            <div class="w-full flex justify-between items-center mb-2">
-              <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                <i class="fa-solid fa-circle-nodes text-blue-600"></i> Сечение рулона в масштабе
-              </span>
-              <span id="viz-layers" class="text-[11px] font-mono text-slate-500 font-semibold">3 967 слоёв</span>
-            </div>
-
-            <div class="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center my-1">
-              <svg id="svg-cross-section" viewBox="0 0 240 240" class="w-full h-full drop-shadow">
-                <!-- Film outer body circle -->
-                <circle id="svg-outer" cx="120" cy="120" r="96" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5" />
-                <!-- Winding concentric ring lines -->
-                <circle cx="120" cy="120" r="82" fill="none" stroke="#93c5fd" stroke-width="1" stroke-dasharray="3 3" opacity="0.8" />
-                <circle cx="120" cy="120" r="68" fill="none" stroke="#93c5fd" stroke-width="1" stroke-dasharray="3 3" opacity="0.8" />
-                <circle cx="120" cy="120" r="54" fill="none" stroke="#93c5fd" stroke-width="1" stroke-dasharray="3 3" opacity="0.8" />
-                <!-- Core tube (Шпуля) -->
-                <circle id="svg-core" cx="120" cy="120" r="28" fill="#fef3c7" stroke="#d97706" stroke-width="2.5" />
-                <!-- Hollow center hole -->
-                <circle id="svg-hole" cx="120" cy="120" r="20" fill="#ffffff" stroke="#94a3b8" stroke-width="1" />
-                <!-- Measurement crosshair -->
-                <line x1="120" y1="120" x2="216" y2="120" stroke="#1e40af" stroke-width="1.5" stroke-dasharray="2 2" />
-                <line x1="120" y1="120" x2="120" y2="24" stroke="#1e40af" stroke-width="1.5" stroke-dasharray="2 2" />
-              </svg>
-            </div>
-
-            <div class="w-full grid grid-cols-2 gap-2 text-center text-xs font-mono mt-1">
-              <div class="bg-blue-50/70 py-1 px-2 rounded-lg border border-blue-100">
-                <span class="text-slate-500 text-[10px] block">Внешний D:</span>
-                <span id="viz-d" class="font-bold text-blue-900">314 мм</span>
+          <!-- Схематичный чертеж сечения рулона -->
+          <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700/80 shadow-lg flex flex-col items-center justify-center">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 self-start">
+              <i class="fa-solid fa-circle-notch text-sky-400"></i> Сечение рулона в масштабе
+            </span>
+            <div class="relative w-48 h-48 flex items-center justify-center">
+              <div id="vis-outer-circle" class="w-44 h-44 rounded-full border-4 border-sky-500/80 bg-sky-950/30 flex items-center justify-center transition-all duration-300 shadow-inner">
+                <div id="vis-inner-circle" class="w-14 h-14 rounded-full border-2 border-amber-500 bg-amber-950/60 flex items-center justify-center transition-all duration-300">
+                  <span class="text-[9px] font-mono text-amber-300">втулка</span>
+                </div>
               </div>
-              <div class="bg-amber-50/70 py-1 px-2 rounded-lg border border-amber-100">
-                <span class="text-slate-500 text-[10px] block">Шпуля d:</span>
-                <span id="viz-d-core" class="font-bold text-amber-900">76 мм</span>
-              </div>
+            </div>
+            <div class="flex justify-between w-full text-[11px] font-mono text-slate-400 mt-2 px-4">
+              <span>Внешний: <b id="vis-outer-label" class="text-sky-300">500 мм</b></span>
+              <span>Втулка: <b id="vis-inner-label" class="text-amber-400">76 мм</b></span>
             </div>
           </div>
-
         </div>
 
-        <!-- Calculation Modules: The 3 Scenarios -->
+        <!-- ПРАВАЯ КОЛОНКА: РАСЧЁТНЫЕ КАРТОЧКИ С ВЗАИМНЫМ ПЕРЕСЧЁТОМ -->
         <div class="lg:col-span-7 space-y-4">
 
-          <!-- Scenario 1: Calculate Net Weight -->
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-subtle relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
-            
+          <!-- КАРТОЧКА 1: РАСЧЕТ ВЕСА НЕТТО -->
+          <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">1</span>
-                <h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wide">Расчёт Веса Нетто (кг)</h3>
-              </div>
-              <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">Масса рулона</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-weight-hanging"></i> Вес нетто рулона (кг)
+              </span>
+              <span class="text-xs px-2 py-0.5 rounded bg-sky-950/60 text-sky-300 font-mono border border-sky-800/50">Масса</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">По длине намотки (L):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
-                  <input 
-                    type="number" 
-                    id="scen1-inp-len" 
-                    value="2000" 
-                    min="1" 
-                    step="10" 
-                    inputmode="numeric" 
-                    oninput="App.calculateScenario('scen1_len')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-8" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">м</span>
+                <label class="block text-xs text-slate-400 mb-1">По диаметру (D):</label>
+                <div class="relative">
+                  <input type="number" id="inp-diam" value="500" step="any" min="1" oninput="onInputFromDiameter(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-sky-500 outline-none">
+                  <span class="absolute right-3 top-2 text-xs text-slate-500 font-mono">мм</span>
                 </div>
               </div>
-
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Или по диаметру (D):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
-                  <input 
-                    type="number" 
-                    id="scen1-inp-diam" 
-                    placeholder="Напр. 314" 
-                    min="77" 
-                    step="1" 
-                    inputmode="numeric" 
-                    oninput="App.calculateScenario('scen1_diam')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-10" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">мм</span>
+                <label class="block text-xs text-slate-400 mb-1">Или по длине (L):</label>
+                <div class="relative">
+                  <input type="number" id="inp-len" placeholder="Напр.: 3836" step="any" min="1" oninput="onInputFromLength(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-sky-500 outline-none">
+                  <span class="absolute right-3 top-2 text-xs text-slate-500 font-mono">м</span>
                 </div>
               </div>
             </div>
 
-            <!-- Result Box -->
-            <div class="bg-gradient-to-br from-blue-50/80 to-blue-100/40 p-3 sm:p-4 rounded-xl border border-blue-200/80 flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
               <div>
-                <span class="text-[10px] sm:text-[11px] font-bold text-blue-700 uppercase tracking-wider block">Итоговый вес нетто:</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span id="res-scen1-weight" class="text-2xl sm:text-3xl font-black font-mono text-blue-950">13.58</span>
-                  <span class="text-sm font-bold text-blue-700">кг</span>
-                </div>
+                <span class="text-xs text-slate-400 block mb-0.5">Итоговый вес нетто:</span>
+                <span id="out-weight" class="text-3xl sm:text-4xl font-extrabold text-sky-400 font-mono">229.14</span>
+                <span class="text-sm font-semibold text-slate-400 ml-1">кг</span>
               </div>
-              <div class="text-right font-mono text-[11px] text-slate-600 space-y-0.5">
-                <div>Диаметр: <b id="sub-scen1-diam" class="text-slate-800">314 мм</b></div>
-                <div>Площадь: <b id="sub-scen1-area" class="text-slate-800">1000 м²</b></div>
+              <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
+                <div>Диаметр: <span id="out-sub-diameter" class="text-slate-200">500 мм</span></div>
+                <div>Площадь: <span id="out-sub-area" class="text-slate-200">5063.9 м²</span></div>
               </div>
             </div>
           </div>
 
-          <!-- Scenario 2: Calculate Roll Diameter -->
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-subtle relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500"></div>
-            
+          <!-- КАРТОЧКА 2: РАСЧЕТ ДИАМЕТРА РУЛОНА -->
+          <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-teal-100 text-teal-700 font-mono font-bold text-xs flex items-center justify-center">2</span>
-                <h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wide">Расчёт Диаметра Рулона (мм)</h3>
-              </div>
-              <span class="text-[10px] font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">Габарит D</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-left-right-to-line"></i> Внешний габарит D (мм)
+              </span>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 font-mono border border-emerald-800/50">Диаметр</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">По весу нетто (M):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100">
-                  <input 
-                    type="number" 
-                    id="scen2-inp-weight" 
-                    placeholder="Напр. 13.58" 
-                    min="0.1" 
-                    step="0.5" 
-                    inputmode="decimal" 
-                    oninput="App.calculateScenario('scen2_weight')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-8" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">кг</span>
+                <label class="block text-xs text-slate-400 mb-1">По весу нетто (M):</label>
+                <div class="relative">
+                  <input type="number" id="inp-weight" placeholder="Напр.: 229.14" step="any" min="0.1" oninput="onInputFromWeight(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-emerald-500 outline-none">
+                  <span class="absolute right-3 top-2 text-xs text-slate-500 font-mono">кг</span>
                 </div>
               </div>
-
-              <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Или по длине (L):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100">
-                  <input 
-                    type="number" 
-                    id="scen2-inp-len" 
-                    value="2000" 
-                    min="1" 
-                    step="10" 
-                    inputmode="numeric" 
-                    oninput="App.calculateScenario('scen2_len')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-8" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">м</span>
-                </div>
+              <div class="flex items-end">
+                <span class="text-xs text-slate-400 pb-2">При изменении веса пересчитываются диаметр и метраж</span>
               </div>
             </div>
 
-            <!-- Result Box -->
-            <div class="bg-gradient-to-br from-teal-50/80 to-teal-100/40 p-3 sm:p-4 rounded-xl border border-teal-200/80 flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
               <div>
-                <span class="text-[10px] sm:text-[11px] font-bold text-teal-700 uppercase tracking-wider block">Внешний диаметр:</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span id="res-scen2-diam" class="text-2xl sm:text-3xl font-black font-mono text-teal-950">314</span>
-                  <span class="text-sm font-bold text-teal-700">мм</span>
-                </div>
+                <span class="text-xs text-slate-400 block mb-0.5">Внешний диаметр:</span>
+                <span id="out-diameter" class="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">500</span>
+                <span class="text-sm font-semibold text-slate-400 ml-1">мм</span>
               </div>
-              <div class="text-right font-mono text-[11px] text-slate-600 space-y-0.5">
-                <div>Стенка намотки: <b id="sub-scen2-wall" class="text-slate-800">119 мм</b></div>
-                <div>Радиус (R): <b id="sub-scen2-rad" class="text-slate-800">157 мм</b></div>
+              <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
+                <div>Стенка намотки: <span id="out-wall-thick" class="text-slate-200">212 мм</span></div>
+                <div>Радиус (R): <span id="out-radius" class="text-slate-200">250 мм</span></div>
               </div>
             </div>
           </div>
 
-          <!-- Scenario 3: Calculate Roll Length -->
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-subtle relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-            
+          <!-- КАРТОЧКА 3: РАСЧЕТ ДЛИНЫ ПОЛОТНА -->
+          <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 font-mono font-bold text-xs flex items-center justify-center">3</span>
-                <h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wide">Расчёт Длины Полотна (м)</h3>
-              </div>
-              <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">Метраж L</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-tape"></i> Длина полотна в рулоне (м)
+              </span>
+              <span class="text-xs px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 font-mono border border-purple-800/50">Метраж L</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
               <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">По весу нетто (M):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100">
-                  <input 
-                    type="number" 
-                    id="scen3-inp-weight" 
-                    value="13.58" 
-                    min="0.1" 
-                    step="0.5" 
-                    inputmode="decimal" 
-                    oninput="App.calculateScenario('scen3_weight')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-8" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">кг</span>
-                </div>
+                <span class="text-xs text-slate-400 block mb-0.5">Длина в рулоне:</span>
+                <span id="out-length" class="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">3836</span>
+                <span class="text-sm font-semibold text-slate-400 ml-1">пог. м</span>
               </div>
-
-              <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Или по диаметру (D):</label>
-                <div class="relative rounded-xl border border-slate-200 bg-slate-50 focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100">
-                  <input 
-                    type="number" 
-                    id="scen3-inp-diam" 
-                    placeholder="Напр. 314" 
-                    min="77" 
-                    step="1" 
-                    inputmode="numeric" 
-                    oninput="App.calculateScenario('scen3_diam')" 
-                    class="w-full bg-transparent p-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none font-mono pr-10" 
-                  />
-                  <span class="absolute right-2.5 top-2.5 text-xs font-medium text-slate-400 pointer-events-none">мм</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Result Box -->
-            <div class="bg-gradient-to-br from-indigo-50/80 to-purple-100/40 p-3 sm:p-4 rounded-xl border border-indigo-200/80 flex items-center justify-between">
-              <div>
-                <span class="text-[10px] sm:text-[11px] font-bold text-indigo-700 uppercase tracking-wider block">Длина в рулоне:</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span id="res-scen3-len" class="text-2xl sm:text-3xl font-black font-mono text-indigo-950">2 000</span>
-                  <span class="text-sm font-bold text-indigo-700">пог. м</span>
-                </div>
-              </div>
-              <div class="text-right font-mono text-[11px] text-slate-600 space-y-0.5">
-                <div>Километраж: <b id="sub-scen3-km" class="text-slate-800">2.00 км</b></div>
-                <div>Площадь: <b id="sub-scen3-area" class="text-slate-800">1000.0 м²</b></div>
+              <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
+                <div>Километраж: <span id="out-km" class="text-slate-200">3.84 км</span></div>
+                <div>Площадь: <span id="out-total-sqm" class="text-slate-200">5063.9 м²</span></div>
               </div>
             </div>
           </div>
 
         </div>
-
       </div>
+    </div>
 
-      <!-- Active Passport Quick Summary Banner -->
-      <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-elevated flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center space-x-3 w-full md:w-auto">
-          <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 text-lg flex-shrink-0">
-            <i class="fa-solid fa-tag"></i>
+    <!-- ВКЛАДКА 2: ЖУРНАЛ -->
+    <div id="view-journal" class="hidden space-y-5">
+      <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-warehouse text-sky-400"></i> Журнал партии рулонов
+            </h2>
+            <p class="text-xs text-slate-400">Синхронизировано с Firebase Cloud Firestore</p>
           </div>
-          <div class="truncate">
-            <h4 class="text-xs sm:text-sm font-bold flex items-center gap-2">
-              <span id="summary-badge-name">Текущий рулон</span>
-              <span id="summary-badge-material" class="bg-blue-600 text-[10px] px-2 py-0.2 rounded-full font-mono uppercase">БОПП</span>
-            </h4>
-            <p id="summary-badge-specs" class="text-[11px] text-slate-400 font-mono">500 мм × 30 мкм | 2000 м | D: 314 мм | 13.58 кг</p>
+          <div class="flex items-center gap-2">
+            <button onclick="exportBatchToCSV()" class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white transition-all flex items-center gap-1.5">
+              <i class="fa-solid fa-file-export"></i> Экспорт CSV
+            </button>
+            <button onclick="clearBatch()" class="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-all">
+              <i class="fa-solid fa-trash-can"></i> Очистить всё
+            </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-          <button onclick="App.openPrintModal(null)" class="flex-1 md:flex-none min-h-[44px] px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white border border-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-print text-blue-400"></i>
-            <span>Этикетка / Паспорт</span>
-          </button>
-          <button onclick="App.addActiveRollToBatch()" class="flex-1 md:flex-none min-h-[44px] px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-blue-500/20">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Сохранить в базу</span>
-          </button>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- VIEW 2: BATCH MANAGER & TABLE (RESPONSIVE CARDS ON MOBILE)         -->
-    <!-- ================================================================= -->
-    <section id="view-batch" class="space-y-4 sm:space-y-6 hidden">
-      
-      <!-- Metrics Overview Cards (Horizontally scrollable on mobile) -->
-      <div class="flex md:grid md:grid-cols-5 gap-3 overflow-x-auto no-scrollbar pb-1">
-        
-        <div class="flex-shrink-0 w-40 sm:w-auto bg-white p-3.5 rounded-2xl border border-slate-200 shadow-subtle">
-          <span class="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Всего рулонов</span>
-          <div id="stat-count" class="text-xl sm:text-2xl font-black font-mono text-slate-800 mt-0.5">0</div>
-          <span class="text-[10px] text-slate-400">в этой партии</span>
-        </div>
-
-        <div class="flex-shrink-0 w-44 sm:w-auto bg-white p-3.5 rounded-2xl border border-slate-200 shadow-subtle">
-          <span class="text-[10px] font-black uppercase text-emerald-600 block tracking-wider">Общий вес нетто</span>
-          <div class="flex items-baseline gap-1 mt-0.5">
-            <span id="stat-weight" class="text-xl sm:text-2xl font-black font-mono text-emerald-700">0.00</span>
-            <span class="text-xs font-bold text-slate-500">кг</span>
-          </div>
-          <span id="stat-weight-tons" class="text-[10px] text-slate-400 font-mono">0.000 т</span>
-        </div>
-
-        <div class="flex-shrink-0 w-44 sm:w-auto bg-white p-3.5 rounded-2xl border border-slate-200 shadow-subtle">
-          <span class="text-[10px] font-black uppercase text-blue-600 block tracking-wider">Общий метраж</span>
-          <div class="flex items-baseline gap-1 mt-0.5">
-            <span id="stat-len" class="text-xl sm:text-2xl font-black font-mono text-blue-800">0</span>
-            <span class="text-xs font-bold text-slate-500">м</span>
-          </div>
-          <span id="stat-len-km" class="text-[10px] text-slate-400 font-mono">0.00 км</span>
-        </div>
-
-        <div class="flex-shrink-0 w-40 sm:w-auto bg-white p-3.5 rounded-2xl border border-slate-200 shadow-subtle">
-          <span class="text-[10px] font-black uppercase text-indigo-600 block tracking-wider">Суммарная S</span>
-          <div class="flex items-baseline gap-1 mt-0.5">
-            <span id="stat-area" class="text-xl sm:text-2xl font-black font-mono text-indigo-700">0</span>
-            <span class="text-xs font-bold text-slate-500">м²</span>
-          </div>
-          <span class="text-[10px] text-slate-400">площадь полотна</span>
-        </div>
-
-        <div class="flex-shrink-0 w-40 sm:w-auto bg-white p-3.5 rounded-2xl border border-slate-200 shadow-subtle">
-          <span class="text-[10px] font-black uppercase text-amber-600 block tracking-wider">Средний D</span>
-          <div class="flex items-baseline gap-1 mt-0.5">
-            <span id="stat-avg-diam" class="text-xl sm:text-2xl font-black font-mono text-amber-700">0</span>
-            <span class="text-xs font-bold text-slate-500">мм</span>
-          </div>
-          <span class="text-[10px] text-slate-400">по партии</span>
-        </div>
-
-      </div>
-
-      <!-- Filter, Search and Actions Bar -->
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-subtle flex flex-col sm:flex-row justify-between items-center gap-2.5">
-        <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2 flex-grow max-w-lg">
-          <!-- Search input -->
-          <div class="relative w-full">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-slate-400 pointer-events-none"></i>
-            <input 
-              type="text" 
-              id="search-filter" 
-              oninput="App.renderBatch()" 
-              placeholder="Поиск рулона..." 
-              class="w-full pl-8 pr-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 focus:outline-none" 
-            />
-          </div>
-          <!-- Material filter dropdown -->
-          <select id="material-filter" onchange="App.renderBatch()" class="w-full sm:w-auto py-2 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none">
-            <option value="ALL">Все полимеры</option>
-            <option value="BOPP">БОПП</option>
-            <option value="LDPE">ПВД</option>
-            <option value="HDPE">ПНД</option>
-            <option value="LLDPE">Стретч</option>
-            <option value="PET">ПЭТ</option>
-          </select>
-        </div>
-
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button onclick="App.exportToCSV()" class="flex-1 sm:flex-none min-h-[40px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-file-excel"></i>
-            <span>В Excel / CSV</span>
-          </button>
-          <button onclick="App.clearBatchPrompt()" class="min-h-[40px] px-3 py-2 text-rose-600 hover:bg-rose-50 border border-rose-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Mobile Responsive List Container -->
-      <div>
-        
-        <!-- Desktop Table View (Hidden on mobile < 768px) -->
-        <div class="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-subtle overflow-hidden">
+        <div class="hidden md:block overflow-x-auto mt-4">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-mono">
               <tr>
-                <th class="py-3 px-4">№</th>
-                <th class="py-3 px-4">Маркировка</th>
-                <th class="py-3 px-4">Полимер</th>
-                <th class="py-3 px-4">Ширина × Толщина</th>
-                <th class="py-3 px-4">Шпуля</th>
-                <th class="py-3 px-4">Длина L</th>
-                <th class="py-3 px-4">Диаметр D</th>
-                <th class="py-3 px-4">Вес нетто</th>
-                <th class="py-3 px-4 text-center">Действия</th>
+                <th class="py-3 px-3 rounded-l-lg">№ / Марка</th>
+                <th class="py-3 px-3">Ширина (мм)</th>
+                <th class="py-3 px-3">Толщина (мкм)</th>
+                <th class="py-3 px-3">Диаметр (мм)</th>
+                <th class="py-3 px-3">Длина (м)</th>
+                <th class="py-3 px-3">Вес нетто (кг)</th>
+                <th class="py-3 px-3">Дата</th>
+                <th class="py-3 px-3 text-right rounded-r-lg">Действия</th>
               </tr>
             </thead>
-            <tbody id="batch-desktop-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
-              <!-- Populated dynamically -->
-            </tbody>
+            <tbody id="journalTableBody" class="divide-y divide-slate-700/50 font-mono"></tbody>
           </table>
         </div>
 
-        <!-- Mobile Cards View (Rendered on mobile screens) -->
-        <div id="batch-mobile-cards" class="md:hidden space-y-2.5">
-          <!-- Populated dynamically via JS -->
-        </div>
+        <div id="journalMobileList" class="md:hidden space-y-3 mt-4"></div>
 
-        <!-- Empty State Message -->
-        <div id="batch-empty-state" class="hidden bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-subtle space-y-3">
-          <div class="w-14 h-14 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mx-auto text-xl">
-            <i class="fa-solid fa-inbox"></i>
-          </div>
-          <h4 class="text-sm font-bold text-slate-800">Журнал рулонов пока пуст</h4>
-          <p class="text-xs text-slate-400 max-w-xs mx-auto">Рассчитайте рулон в калькуляторе и нажмите «Записать в журнал / Firebase» для сохранения партии.</p>
-          <button onclick="App.switchTab('calc')" class="text-xs px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-sm">
-            Перейти к расчёту
-          </button>
+        <div id="journalEmptyState" class="py-12 text-center text-slate-500 text-sm">
+          <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-2 block"></i>
+          Рулонов в партии пока нет. Добавьте первый расчёт через калькулятор.
         </div>
-
       </div>
+    </div>
 
-    </section>
+    <!-- ВКЛАДКА 3: СПРАВОЧНИК -->
+    <div id="view-help" class="hidden space-y-5">
+      <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg space-y-4">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-square-root-variable text-sky-400"></i> Физические формулы калькулятора
+        </h2>
 
-    <!-- ================================================================= -->
-    <!-- VIEW 3: DENSITY GUIDE & FORMULAS REFERENCE                        -->
-    <!-- ================================================================= -->
-    <section id="view-guide" class="space-y-4 sm:space-y-6 hidden">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        
-        <!-- Polymer Density Table -->
-        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-subtle space-y-4">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-              <i class="fa-solid fa-flask"></i>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm sm:text-base">Справочник плотностей полимеров</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 leading-relaxed">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
+            <span class="font-bold text-sky-400 block text-sm">1. Длина намотки по диаметрам (D, d):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">L = (π × (D² - d²) × k) / (4 × t_мкм) [метры]</code>
+            <p>где D — наружный диаметр (мм), d — шпуля (мм), t — толщина (мкм), k — фактор намотки.</p>
           </div>
 
-          <div class="overflow-x-auto text-xs">
-            <table class="w-full text-left">
-              <thead class="text-slate-400 font-bold border-b border-slate-100">
-                <tr>
-                  <th class="py-2">Плёнка</th>
-                  <th class="py-2">Плотность ρ</th>
-                  <th class="py-2">Применение</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 font-bold text-slate-900">ПВД (LDPE)</td>
-                  <td class="py-2.5 font-mono text-blue-700 font-bold">0.915 – 0.930 г/см³</td>
-                  <td class="py-2.5 text-slate-500">Пакеты, термоусадка</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 font-bold text-slate-900">ПНД (HDPE)</td>
-                  <td class="py-2.5 font-mono text-blue-700 font-bold">0.945 – 0.960 г/см³</td>
-                  <td class="py-2.5 text-slate-500">Шуршащие пакеты-майки</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 font-bold text-slate-900">Стретч (LLDPE)</td>
-                  <td class="py-2.5 font-mono text-blue-700 font-bold">0.918 – 0.925 г/см³</td>
-                  <td class="py-2.5 text-slate-500">Паллетная обмотка</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 font-bold text-slate-900">БОПП (BOPP)</td>
-                  <td class="py-2.5 font-mono text-blue-700 font-bold">0.900 – 0.910 г/см³</td>
-                  <td class="py-2.5 text-slate-500">Флексопечать, этикетка</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 font-bold text-slate-900">ПЭТ (BOPET)</td>
-                  <td class="py-2.5 font-mono text-blue-700 font-bold">1.380 – 1.410 г/см³</td>
-                  <td class="py-2.5 text-slate-500">Ламинаты, металлизация</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
+            <span class="font-bold text-sky-400 block text-sm">2. Наружный диаметр по длине (L):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">D = √( d² + (4 × L × t_мкм) / (π × k) ) [мм]</code>
+            <p>Вычисляет точный габарит рулона при заданном метраже.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
+            <span class="font-bold text-sky-400 block text-sm">3. Вес нетто полотна (M):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">M = L × W_мм × t_мкм × ρ × 10⁻⁶ [кг]</code>
+            <p>где W — ширина (мм), ρ — плотность полимера (г/см³).</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
+            <span class="font-bold text-sky-400 block text-sm">4. Длина полотна по весу нетто (M):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">L = (M × 10⁶) / (W_мм × t_мкм × ρ) [метры]</code>
+            <p>Позволяет по взвешенному рулону узнать точный метраж и его внешний диаметр.</p>
           </div>
         </div>
-
-        <!-- Formulas Card -->
-        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-subtle space-y-3">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <i class="fa-solid fa-square-root-variable"></i>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm sm:text-base">Формулы пересчёта намотки</h3>
-          </div>
-
-          <div class="space-y-2.5 text-xs text-slate-600">
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-mono">
-              <span class="text-blue-700 font-bold block mb-0.5">Вес нетто:</span>
-              <code>M = L × (W / 1000) × (t / 1000) × ρ</code>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-mono">
-              <span class="text-teal-700 font-bold block mb-0.5">Диаметр рулона (D):</span>
-              <code>D = √( d² + (4 × L × t × 1000) / (π × k) )</code>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-mono">
-              <span class="text-indigo-700 font-bold block mb-0.5">Длина полотна через вес:</span>
-              <code>L = ( M × 1 000 000 ) / ( W × t × ρ )</code>
-            </div>
-          </div>
-        </div>
-
       </div>
-    </section>
+    </div>
 
   </main>
 
-  <!-- Mobile Fixed Bottom Navigation Bar (< 768px) -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-3 py-1.5 shadow-lg flex justify-around items-center">
-    <button id="mtab-calc" onclick="App.switchTab('calc')" class="flex flex-col items-center justify-center py-1 px-3 text-blue-600 font-bold transition">
-      <i class="fa-solid fa-calculator text-base mb-0.5"></i>
-      <span class="text-[10px]">Расчёт</span>
+  <!-- МОБИЛЬНАЯ НАВИГАЦИЯ -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-4 py-2 flex justify-around items-center">
+    <button onclick="switchTab('calc')" id="mobTab-calc" class="flex flex-col items-center gap-1 text-sky-400">
+      <i class="fa-solid fa-calculator text-lg"></i>
+      <span class="text-[10px] font-semibold">Калькулятор</span>
     </button>
-    <button id="mtab-batch" onclick="App.switchTab('batch')" class="flex flex-col items-center justify-center py-1 px-3 text-slate-500 font-medium transition relative">
-      <i class="fa-solid fa-boxes-stacked text-base mb-0.5"></i>
-      <span class="text-[10px]">Партия</span>
-      <span id="mobile-batch-count" class="absolute top-0 right-2 bg-blue-600 text-white rounded-full text-[9px] font-mono px-1">0</span>
+    <button onclick="switchTab('journal')" id="mobTab-journal" class="flex flex-col items-center gap-1 text-slate-400 relative">
+      <i class="fa-solid fa-list-check text-lg"></i>
+      <span class="text-[10px] font-medium">Партия</span>
+      <span id="mobBadgeCount" class="absolute -top-1 right-2 px-1.5 py-0.2 bg-sky-500 text-white rounded-full text-[9px] font-mono">0</span>
     </button>
-    <button id="mtab-guide" onclick="App.switchTab('guide')" class="flex flex-col items-center justify-center py-1 px-3 text-slate-500 font-medium transition">
-      <i class="fa-solid fa-book text-base mb-0.5"></i>
-      <span class="text-[10px]">Справка</span>
+    <button onclick="switchTab('help')" id="mobTab-help" class="flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-book-open text-lg"></i>
+      <span class="text-[10px] font-medium">Справка</span>
     </button>
-  </nav>
-
-  <!-- Printable Roll Passport / Thermal Label Modal -->
-  <div id="print-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-white rounded-3xl max-w-sm sm:max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-150">
-      
-      <button onclick="App.closePrintModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 no-print">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-
-      <!-- Printable passport card -->
-      <div id="printable-passport" class="print-border-thick border-2 border-slate-900 p-4 sm:p-5 rounded-2xl bg-white text-slate-900 space-y-3 font-sans">
-        
-        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2">
-          <div>
-            <h3 class="text-sm sm:text-base font-black uppercase tracking-wider">ПАСПОРТ РУЛОНА</h3>
-            <p id="lbl-date" class="text-[9px] text-slate-500 font-mono">2026-09-21 15:40</p>
-          </div>
-          <div class="text-right">
-            <span id="lbl-material" class="text-xs font-black uppercase tracking-wide bg-slate-900 text-white px-2 py-0.5 rounded">БОПП</span>
-          </div>
-        </div>
-
-        <div class="text-center py-1">
-          <span class="text-[9px] text-slate-500 uppercase tracking-widest block">Идентификатор / Маркировка</span>
-          <h2 id="lbl-name" class="text-base sm:text-lg font-black font-mono tracking-tight text-slate-900">РУЛОН #001</h2>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 text-xs border-y border-slate-300 py-2.5 font-mono">
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Ширина:</span>
-            <b id="lbl-width">500 мм</b>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Толщина:</span>
-            <b id="lbl-thickness">30 мкм</b>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Длина намотки:</span>
-            <b id="lbl-length" class="text-blue-700">2 000 м</b>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Диаметр (D):</span>
-            <b id="lbl-diameter" class="text-teal-700">314 мм</b>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Шпуля (d):</span>
-            <b id="lbl-core">76 мм</b>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-sans block">Площадь:</span>
-            <b id="lbl-area">1 000 м²</b>
-          </div>
-        </div>
-
-        <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-300 flex justify-between items-center">
-          <span class="text-xs font-black uppercase">ВЕС НЕТТО:</span>
-          <span id="lbl-weight" class="text-xl sm:text-2xl font-black font-mono text-slate-950">13.58 кг</span>
-        </div>
-
-        <div class="pt-1 text-[8px] text-slate-400 text-center uppercase tracking-wider">
-          ОТК ПРОЙДЕН • ПОДПИСЬ ОПЕРАТОРА: _______________
-        </div>
-
-      </div>
-
-      <!-- Action buttons -->
-      <div class="flex justify-end gap-2 mt-4 no-print">
-        <button onclick="App.closePrintModal()" class="text-xs px-3.5 py-2 border border-slate-200 rounded-xl hover:bg-slate-100 font-medium">Закрыть</button>
-        <button onclick="window.print()" class="text-xs px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-print"></i>
-          <span>Печать (A4 / Термо)</span>
-        </button>
-      </div>
-
-    </div>
   </div>
 
-  <!-- Application Script Engine -->
+  <!-- СКРИПТЫ РАСЧЕТА И СИНХРОНИЗАЦИИ -->
   <script>
-    const App = {
-      // Configuration pre-configured for your project
-      firebaseConfig: {
-        apiKey: "AIzaSyC2kBdjek3300YERjDPs2nT4DYDT4Q9Hk4",
-        authDomain: "rollcalculator.firebaseapp.com",
-        projectId: "rollcalculator",
-        storageBucket: "rollcalculator.firebasestorage.app",
-        messagingSenderId: "669857252819",
-        appId: "1:669857252819:web:c12bb324d7167658901b26",
-        measurementId: "G-1K1V7SHLF6"
-      },
-
-      // App reactive state
-      state: {
-        activeTab: 'calc',
-        material: 'BOPP',
-        density: 0.905,
-        width: 500,        // мм
-        thickness: 30,     // мкм
-        coreD: 76,         // мм
-        k: 1.00,           // намотка
-        
-        // Calculated dynamic output
-        length: 2000,
-        diameter: 314.1,
-        weight: 13.58,
-
-        // Batch collection
-        rolls: [],
-        
-        // Firebase handles
-        db: null,
-        isOnline: false
-      },
-
-      // Lifecycle initialization
-      init() {
-        this.loadLocalRolls();
-        this.initFirebase();
-        this.calculateScenario('scen1_len');
-        this.renderBatch();
-      },
-
-      // View switching logic (Desktop + Mobile)
-      switchTab(tabId) {
-        this.state.activeTab = tabId;
-        const tabs = ['calc', 'batch', 'guide'];
-
-        tabs.forEach(t => {
-          const view = document.getElementById(`view-${t}`);
-          const dBtn = document.getElementById(`dtab-${t}`);
-          const mBtn = document.getElementById(`mtab-${t}`);
-
-          if (t === tabId) {
-            view.classList.remove('hidden');
-            if (dBtn) {
-              dBtn.className = 'px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white flex items-center gap-2 transition shadow-sm';
-            }
-            if (mBtn) {
-              mBtn.className = 'flex flex-col items-center justify-center py-1 px-3 text-blue-600 font-bold transition';
-            }
-          } else {
-            view.classList.add('hidden');
-            if (dBtn) {
-              dBtn.className = 'px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition';
-            }
-            if (mBtn) {
-              mBtn.className = 'flex flex-col items-center justify-center py-1 px-3 text-slate-500 font-medium transition';
-            }
-          }
-        });
-
-        if (tabId === 'batch') {
-          this.renderBatch();
-        }
-      },
-
-      // Material preset handler
-      setMaterial(matKey, density) {
-        this.state.material = matKey;
-        const densityInput = document.getElementById('inp-density');
-
-        if (density !== null) {
-          this.state.density = density;
-          densityInput.value = density.toFixed(3);
-        } else {
-          densityInput.focus();
-        }
-
-        // Update active pills
-        document.querySelectorAll('.mat-btn').forEach(btn => {
-          if (btn.dataset.mat === matKey) {
-            btn.className = 'mat-btn active-mat flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-blue-600 bg-blue-50 text-blue-700 transition';
-          } else {
-            btn.className = 'mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition';
-          }
-        });
-
-        this.calculateScenario('scen1_len');
-      },
-
-      onManualDensityChange() {
-        const val = parseFloat(document.getElementById('inp-density').value) || 0.90;
-        this.state.density = val;
-        this.state.material = 'CUSTOM';
-        document.querySelectorAll('.mat-btn').forEach(btn => {
-          btn.className = (btn.dataset.mat === 'CUSTOM') 
-            ? 'mat-btn active-mat flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-blue-600 bg-blue-50 text-blue-700 transition'
-            : 'mat-btn flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition';
-        });
-        this.calculateScenario('scen1_len');
-      },
-
-      onCorePresetChange(val) {
-        const coreInp = document.getElementById('inp-core');
-        if (val === 'CUSTOM') {
-          coreInp.focus();
-        } else {
-          coreInp.value = val;
-          this.state.coreD = parseFloat(val);
-          this.calculateScenario('scen1_len');
-        }
-      },
-
-      onKSliderChange(val) {
-        this.state.k = parseFloat(val);
-        document.getElementById('lbl-k-value').innerText = parseFloat(val).toFixed(2);
-        this.calculateScenario('scen1_len');
-      },
-
-      onMainParamChange() {
-        this.readInputs();
-        this.calculateScenario('scen1_len');
-      },
-
-      readInputs() {
-        this.state.width = Math.max(1, parseFloat(document.getElementById('inp-width').value) || 500);
-        this.state.thickness = Math.max(0.1, parseFloat(document.getElementById('inp-thickness').value) || 30);
-        this.state.density = Math.max(0.01, parseFloat(document.getElementById('inp-density').value) || 0.905);
-        this.state.coreD = Math.max(10, parseFloat(document.getElementById('inp-core').value) || 76);
-      },
-
-      // Core Mathematical Physics Engine for 3 Scenarios
-      calculateScenario(source) {
-        this.readInputs();
-
-        const W = this.state.width;
-        const t = this.state.thickness;
-        const rho = this.state.density;
-        const d = this.state.coreD;
-        const k = this.state.k;
-
-        let L = this.state.length;
-        let D = this.state.diameter;
-        let M = this.state.weight;
-
-        if (source === 'scen1_len') {
-          L = parseFloat(document.getElementById('scen1-inp-len').value) || 0;
-          M = L * (W / 1000) * (t / 1000) * rho;
-          D = Math.sqrt(Math.pow(d, 2) + (4 * L * t * 1000) / (Math.PI * k));
-        } 
-        else if (source === 'scen1_diam') {
-          D = parseFloat(document.getElementById('scen1-inp-diam').value) || d;
-          if (D > d) {
-            L = (Math.PI * (Math.pow(D, 2) - Math.pow(d, 2)) * k) / (4 * t * 1000);
-            M = L * (W / 1000) * (t / 1000) * rho;
-          }
-        }
-        else if (source === 'scen2_weight') {
-          M = parseFloat(document.getElementById('scen2-inp-weight').value) || 0;
-          L = (M * 1000000) / (W * t * rho);
-          D = Math.sqrt(Math.pow(d, 2) + (4 * L * t * 1000) / (Math.PI * k));
-        }
-        else if (source === 'scen2_len') {
-          L = parseFloat(document.getElementById('scen2-inp-len').value) || 0;
-          D = Math.sqrt(Math.pow(d, 2) + (4 * L * t * 1000) / (Math.PI * k));
-          M = L * (W / 1000) * (t / 1000) * rho;
-        }
-        else if (source === 'scen3_weight') {
-          M = parseFloat(document.getElementById('scen3-inp-weight').value) || 0;
-          L = (M * 1000000) / (W * t * rho);
-          D = Math.sqrt(Math.pow(d, 2) + (4 * L * t * 1000) / (Math.PI * k));
-        }
-        else if (source === 'scen3_diam') {
-          D = parseFloat(document.getElementById('scen3-inp-diam').value) || d;
-          if (D > d) {
-            L = (Math.PI * (Math.pow(D, 2) - Math.pow(d, 2)) * k) / (4 * t * 1000);
-            M = L * (W / 1000) * (t / 1000) * rho;
-          }
-        }
-
-        // Save active metrics
-        this.state.length = L;
-        this.state.diameter = D;
-        this.state.weight = M;
-
-        this.updateScenarioCards(L, D, M, W, d, t);
-        this.updateSvgCrossSection(D, d, t);
-        this.updateQuickSummaryBanner();
-      },
-
-      updateScenarioCards(L, D, M, W, d, t) {
-        const area = (L * W) / 1000;
-        const wall = Math.max(0, (D - d) / 2);
-
-        // Scenario 1 card
-        document.getElementById('res-scen1-weight').innerText = M.toFixed(2);
-        document.getElementById('sub-scen1-diam').innerText = `${Math.round(D)} мм`;
-        document.getElementById('sub-scen1-area').innerText = `${Math.round(area)} м²`;
-
-        // Scenario 2 card
-        document.getElementById('res-scen2-diam').innerText = Math.round(D);
-        document.getElementById('sub-scen2-wall').innerText = `${Math.round(wall)} мм`;
-        document.getElementById('sub-scen2-rad').innerText = `${Math.round(D / 2)} мм`;
-
-        // Scenario 3 card
-        document.getElementById('res-scen3-len').innerText = Math.round(L).toLocaleString('ru-RU');
-        document.getElementById('sub-scen3-km').innerText = `${(L / 1000).toFixed(2)} км`;
-        document.getElementById('sub-scen3-area').innerText = `${area.toFixed(1)} м²`;
-      },
-
-      updateSvgCrossSection(D, d, t) {
-        const maxScaleDiam = 1200; // mm
-        const outerR = Math.min(100, Math.max(30, (D / maxScaleDiam) * 105 + 26));
-        const coreR = Math.min(outerR - 6, Math.max(12, (d / D) * outerR));
-        const holeR = Math.max(6, coreR - 6);
-
-        document.getElementById('svg-outer').setAttribute('r', outerR);
-        document.getElementById('svg-core').setAttribute('r', coreR);
-        document.getElementById('svg-hole').setAttribute('r', holeR);
-
-        document.getElementById('viz-d').innerText = `${Math.round(D)} мм`;
-        document.getElementById('viz-d-core').innerText = `${Math.round(d)} мм`;
-
-        const layers = Math.round(((D - d) / 2) / (t / 1000));
-        document.getElementById('viz-layers').innerText = `${layers.toLocaleString('ru-RU')} слоёв`;
-      },
-
-      updateQuickSummaryBanner() {
-        const customName = document.getElementById('inp-roll-name').value.trim();
-        const displayName = customName || `Рулон #${this.state.rolls.length + 1}`;
-        
-        document.getElementById('summary-badge-name').innerText = displayName;
-        document.getElementById('summary-badge-material').innerText = this.state.material;
-        document.getElementById('summary-badge-specs').innerText = 
-          `${this.state.width} мм × ${this.state.thickness} мкм | ${Math.round(this.state.length).toLocaleString('ru-RU')} м | D: ${Math.round(this.state.diameter)} мм | ${this.state.weight.toFixed(2)} кг`;
-      },
-
-      resetToDefault() {
-        document.getElementById('inp-width').value = 500;
-        document.getElementById('inp-thickness').value = 30;
-        document.getElementById('inp-core-preset').value = 76;
-        document.getElementById('inp-core').value = 76;
-        document.getElementById('inp-k').value = 1.00;
-        document.getElementById('lbl-k-value').innerText = '1.00';
-        document.getElementById('scen1-inp-len').value = 2000;
-        document.getElementById('scen1-inp-diam').value = '';
-        document.getElementById('inp-roll-name').value = '';
-        
-        this.setMaterial('BOPP', 0.905);
-      },
-
-      // Batch & Firebase Synchronization
-      async addActiveRollToBatch() {
-        const customName = document.getElementById('inp-roll-name').value.trim();
-        const rollCount = this.state.rolls.length + 1;
-        const name = customName || `Рулон #${String(rollCount).padStart(3, '0')}`;
-
-        const newRoll = {
-          id: 'roll_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          name: name,
-          material: this.state.material,
-          density: parseFloat(this.state.density.toFixed(3)),
-          width: this.state.width,
-          thickness: this.state.thickness,
-          coreD: this.state.coreD,
-          length: Math.round(this.state.length),
-          diameter: Math.round(this.state.diameter),
-          weight: parseFloat(this.state.weight.toFixed(2)),
-          area: parseFloat(((this.state.length * this.state.width) / 1000).toFixed(1)),
-          createdAt: new Date().toISOString()
-        };
-
-        this.state.rolls.unshift(newRoll);
-        this.saveLocalRolls();
-        this.renderBatch();
-
-        // Sync to cloud Firestore
-        if (this.state.isOnline && this.state.db) {
-          try {
-            const { doc, setDoc } = window.FirebaseBridge;
-            await setDoc(doc(this.state.db, 'rolls', newRoll.id), newRoll);
-          } catch (e) {
-            console.warn('Sync to Firestore skipped:', e);
-          }
-        }
-
-        this.showToast(`«${name}» сохранён в журнал!`);
-      },
-
-      async deleteRoll(id) {
-        this.state.rolls = this.state.rolls.filter(r => r.id !== id);
-        this.saveLocalRolls();
-        this.renderBatch();
-
-        if (this.state.isOnline && this.state.db) {
-          try {
-            const { doc, deleteDoc } = window.FirebaseBridge;
-            await deleteDoc(doc(this.state.db, 'rolls', id));
-          } catch (e) {
-            console.warn('Delete from Firestore failed:', e);
-          }
-        }
-      },
-
-      clearBatchPrompt() {
-        if (this.state.rolls.length === 0) return;
-        this.state.rolls = [];
-        this.saveLocalRolls();
-        this.renderBatch();
-        this.showToast('Журнал партий очищен');
-      },
-
-      renderBatch() {
-        const searchQuery = (document.getElementById('search-filter')?.value || '').toLowerCase();
-        const materialFilter = document.getElementById('material-filter')?.value || 'ALL';
-
-        const filtered = this.state.rolls.filter(roll => {
-          const matchSearch = roll.name.toLowerCase().includes(searchQuery) || roll.material.toLowerCase().includes(searchQuery);
-          const matchMat = materialFilter === 'ALL' || roll.material === materialFilter;
-          return matchSearch && matchMat;
-        });
-
-        // Update counts
-        const count = this.state.rolls.length;
-        document.getElementById('desktop-batch-count').innerText = count;
-        document.getElementById('mobile-batch-count').innerText = count;
-
-        const emptyState = document.getElementById('batch-empty-state');
-        const desktopTbody = document.getElementById('batch-desktop-tbody');
-        const mobileCards = document.getElementById('batch-mobile-cards');
-
-        if (this.state.rolls.length === 0) {
-          emptyState.classList.remove('hidden');
-          desktopTbody.innerHTML = '';
-          mobileCards.innerHTML = '';
-        } else {
-          emptyState.classList.add('hidden');
-
-          // Render Desktop Table Rows
-          desktopTbody.innerHTML = filtered.map((r, i) => `
-            <tr class="hover:bg-slate-50 transition">
-              <td class="py-3 px-4 font-mono text-slate-400">${i + 1}</td>
-              <td class="py-3 px-4">
-                <span class="font-bold text-slate-900 block">${this.escapeHTML(r.name)}</span>
-                <span class="text-[10px] text-slate-400 font-mono">${new Date(r.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                  ${r.material}
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono">${r.width} мм × ${r.thickness} мкм</td>
-              <td class="py-3 px-4 font-mono text-slate-500">${r.coreD} мм</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700">${r.length.toLocaleString('ru-RU')} м</td>
-              <td class="py-3 px-4 font-mono font-bold text-teal-700">${r.diameter} мм</td>
-              <td class="py-3 px-4 font-mono font-black text-emerald-700">${r.weight.toFixed(2)} кг</td>
-              <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
-                <button onclick="App.openPrintModal('${r.id}')" title="Печать паспорта" class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition">
-                  <i class="fa-solid fa-print"></i>
-                </button>
-                <button onclick="App.deleteRoll('${r.id}')" title="Удалить" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              </td>
-            </tr>
-          `).join('');
-
-          // Render Responsive Mobile Cards (< 768px)
-          mobileCards.innerHTML = filtered.map((r, i) => `
-            <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-subtle flex flex-col justify-between space-y-2.5">
-              <div class="flex items-start justify-between">
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-black text-slate-900">${this.escapeHTML(r.name)}</span>
-                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">${r.material}</span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 font-mono">Ширина ${r.width} мм • ${r.thickness} мкм</span>
-                </div>
-                <div class="text-right">
-                  <span class="text-sm font-black font-mono text-emerald-700">${r.weight.toFixed(2)} кг</span>
-                  <span class="text-[10px] text-slate-400 block">${r.area} м²</span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs font-mono">
-                <div class="flex items-center gap-3">
-                  <div>
-                    <span class="text-[9px] text-slate-400 font-sans block">Длина</span>
-                    <b class="text-blue-700">${r.length.toLocaleString('ru-RU')} м</b>
-                  </div>
-                  <div>
-                    <span class="text-[9px] text-slate-400 font-sans block">Диаметр</span>
-                    <b class="text-teal-700">${r.diameter} мм</b>
-                  </div>
-                  <div>
-                    <span class="text-[9px] text-slate-400 font-sans block">Шпуля</span>
-                    <span class="text-slate-600">${r.coreD} мм</span>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-1.5">
-                  <button onclick="App.openPrintModal('${r.id}')" class="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center bg-slate-100 active:bg-slate-200 text-slate-700 rounded-xl transition">
-                    <i class="fa-solid fa-print"></i>
-                  </button>
-                  <button onclick="App.deleteRoll('${r.id}')" class="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center bg-rose-50 active:bg-rose-100 text-rose-600 rounded-xl transition">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('');
-        }
-
-        this.updateAggregateCards();
-      },
-
-      updateAggregateCards() {
-        const rolls = this.state.rolls;
-        const totalCount = rolls.length;
-        const totalWeight = rolls.reduce((sum, r) => sum + (r.weight || 0), 0);
-        const totalLength = rolls.reduce((sum, r) => sum + (r.length || 0), 0);
-        const totalArea = rolls.reduce((sum, r) => sum + ((r.length * r.width) / 1000), 0);
-        const avgDiam = totalCount > 0 ? Math.round(rolls.reduce((sum, r) => sum + (r.diameter || 0), 0) / totalCount) : 0;
-
-        document.getElementById('stat-count').innerText = totalCount;
-        document.getElementById('stat-weight').innerText = totalWeight.toFixed(2);
-        document.getElementById('stat-weight-tons').innerText = `${(totalWeight / 1000).toFixed(3)} т`;
-        document.getElementById('stat-len').innerText = Math.round(totalLength).toLocaleString('ru-RU');
-        document.getElementById('stat-len-km').innerText = `${(totalLength / 1000).toFixed(2)} км`;
-        document.getElementById('stat-area').innerText = Math.round(totalArea).toLocaleString('ru-RU');
-        document.getElementById('stat-avg-diam').innerText = avgDiam;
-      },
-
-      exportToCSV() {
-        if (this.state.rolls.length === 0) {
-          this.showToast('Партия пуста, нечего выгружать');
-          return;
-        }
-
-        const headers = ['№', 'Наименование рулона', 'Полимер', 'Ширина (мм)', 'Толщина (мкм)', 'Плотность (г/см3)', 'Шпуля (мм)', 'Длина (м)', 'Диаметр (мм)', 'Вес нетто (кг)', 'Площадь (м2)', 'Дата/Время'];
-        const rows = this.state.rolls.map((r, i) => [
-          i + 1,
-          `"${r.name.replace(/"/g, '""')}"`,
-          r.material,
-          r.width,
-          r.thickness,
-          r.density,
-          r.coreD,
-          r.length,
-          r.diameter,
-          r.weight.toFixed(2),
-          r.area.toFixed(1),
-          r.createdAt
-        ]);
-
-        const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\r\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Партия_рулонов_${new Date().toISOString().substring(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        this.showToast('CSV успешно скачан!');
-      },
-
-      openPrintModal(rollId) {
-        let roll;
-        if (rollId) {
-          roll = this.state.rolls.find(r => r.id === rollId);
-        } else {
-          roll = {
-            name: document.getElementById('inp-roll-name').value.trim() || 'РУЛОН-ЭКСПРЕСС',
-            material: this.state.material,
-            width: this.state.width,
-            thickness: this.state.thickness,
-            coreD: this.state.coreD,
-            length: Math.round(this.state.length),
-            diameter: Math.round(this.state.diameter),
-            weight: parseFloat(this.state.weight.toFixed(2)),
-            area: parseFloat(((this.state.length * this.state.width) / 1000).toFixed(1)),
-            createdAt: new Date().toISOString()
-          };
-        }
-
-        if (!roll) return;
-
-        document.getElementById('lbl-name').innerText = roll.name;
-        document.getElementById('lbl-material').innerText = roll.material;
-        document.getElementById('lbl-width').innerText = `${roll.width} мм`;
-        document.getElementById('lbl-thickness').innerText = `${roll.thickness} мкм`;
-        document.getElementById('lbl-length').innerText = `${roll.length.toLocaleString('ru-RU')} м`;
-        document.getElementById('lbl-diameter').innerText = `${roll.diameter} мм`;
-        document.getElementById('lbl-core').innerText = `${roll.coreD} мм`;
-        document.getElementById('lbl-weight').innerText = `${roll.weight.toFixed(2)} кг`;
-        document.getElementById('lbl-area').innerText = `${roll.area.toLocaleString('ru-RU')} м²`;
-        document.getElementById('lbl-date').innerText = new Date(roll.createdAt).toLocaleString('ru-RU');
-
-        document.getElementById('print-modal').classList.remove('hidden');
-      },
-
-      closePrintModal() {
-        document.getElementById('print-modal').classList.add('hidden');
-      },
-
-      saveLocalRolls() {
-        try {
-          localStorage.setItem('polymer_rolls_cache_v2', JSON.stringify(this.state.rolls));
-        } catch (e) {
-          console.warn('LocalStorage save failed', e);
-        }
-      },
-
-      loadLocalRolls() {
-        try {
-          const raw = localStorage.getItem('polymer_rolls_cache_v2');
-          if (raw) {
-            this.state.rolls = JSON.parse(raw);
-          }
-        } catch (e) {
-          this.state.rolls = [];
-        }
-      },
-
-      // Firebase Live Connection
-      async initFirebase() {
-        const badge = document.getElementById('cloud-badge');
-        const badgeText = document.getElementById('cloud-badge-text');
-
-        try {
-          const { initializeApp, getFirestore, collection, onSnapshot } = window.FirebaseBridge;
-          const fbApp = initializeApp(this.firebaseConfig);
-          this.state.db = getFirestore(fbApp);
-          this.state.isOnline = true;
-
-          badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-950/50 text-emerald-300 border border-emerald-700/60 shadow-inner';
-          badgeText.innerText = 'Firebase: В сети';
-
-          // Subscribe to real-time changes
-          const rollsColl = collection(this.state.db, 'rolls');
-          onSnapshot(rollsColl, (snapshot) => {
-            const remoteRolls = [];
-            snapshot.forEach(doc => remoteRolls.push(doc.data()));
-
-            if (remoteRolls.length > 0) {
-              remoteRolls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-              this.state.rolls = remoteRolls;
-              this.saveLocalRolls();
-              this.renderBatch();
-            }
-          }, (err) => {
-            console.warn('Firestore live listener notice:', err);
-          });
-
-        } catch (err) {
-          console.warn('Operating in offline mode:', err);
-          this.state.isOnline = false;
-          badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700 shadow-inner';
-          badgeText.innerText = 'Локальный режим';
-        }
-      },
-
-      showToast(text) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-16 md:bottom-5 right-4 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-xl border border-slate-700 flex items-center space-x-2 animate-bounce';
-        toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${text}</span>`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2800);
-      },
-
-      escapeHTML(str) {
-        return (str || '').replace(/[&<>'"]/g, 
-          tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-        );
+    // --- ПАРАМЕТРЫ FIREBASE ---
+    const firebaseConfig = { projectId: "rollcalculator" };
+    let db = null;
+    let localRolls = [];
+
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      initFirestoreListener();
+    } catch (e) {
+      console.warn("Offline Firebase mode:", e);
+      document.getElementById('firebaseStatusBadge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="hidden sm:inline">Локально</span>';
+    }
+
+    function initFirestoreListener() {
+      if (!db) return;
+      db.collection("rolls").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        localRolls = [];
+        snapshot.forEach(doc => localRolls.push({ id: doc.id, ...doc.data() }));
+        renderJournal();
+      }, err => console.warn(err));
+    }
+
+    // --- ФИЗИЧЕСКИЙ ДВИЖОК РАСЧЕТОВ ---
+    // Режим последнего активного ввода: 'diameter' | 'length' | 'weight'
+    let currentMaster = 'diameter';
+
+    function getParams() {
+      return {
+        w: parseFloat(document.getElementById('inp-width').value) || 0,
+        t: parseFloat(document.getElementById('inp-thickness').value) || 0,
+        rho: parseFloat(document.getElementById('inp-density').value) || 0,
+        d: parseFloat(document.getElementById('inp-core').value) || 76,
+        k: parseFloat(document.getElementById('inp-kfactor').value) || 1.0
+      };
+    }
+
+    // Расчет L и M по диаметру D
+    function calcByDiameter(D, p) {
+      if (D <= p.d || !p.t || !p.w || !p.rho) {
+        return { D: D, L: 0, M: 0 };
       }
-    };
+      // L = (pi * (D^2 - d^2) * k) / (4 * t_um) в метрах
+      const L = (Math.PI * (D * D - p.d * p.d) * p.k) / (4 * p.t);
+      // M = L * W * t * rho * 1e-6 в кг
+      const M = L * p.w * p.t * p.rho * 1e-6;
+      return { D, L, M };
+    }
+
+    // Расчет D и M по длине L
+    function calcByLength(L, p) {
+      if (L <= 0 || !p.t || !p.w || !p.rho) {
+        return { D: p.d, L: L, M: 0 };
+      }
+      // D = sqrt(d^2 + (4 * L * t_um) / (pi * k)) в мм
+      const D2 = (p.d * p.d) + (4 * L * p.t) / (Math.PI * p.k);
+      const D = Math.sqrt(Math.max(0, D2));
+      const M = L * p.w * p.t * p.rho * 1e-6;
+      return { D, L, M };
+    }
+
+    // Расчет L и D по весу M
+    function calcByWeight(M, p) {
+      if (M <= 0 || !p.t || !p.w || !p.rho) {
+        return { D: p.d, L: 0, M: M };
+      }
+      // L = (M * 1e6) / (W * t * rho) в метрах
+      const L = (M * 1e6) / (p.w * p.t * p.rho);
+      const D2 = (p.d * p.d) + (4 * L * p.t) / (Math.PI * p.k);
+      const D = Math.sqrt(Math.max(0, D2));
+      return { D, L, M };
+    }
+
+    // Обработчик изменения диаметра пользователем
+    function onInputFromDiameter(val) {
+      currentMaster = 'diameter';
+      const D = parseFloat(val) || 0;
+      recalculateAndDisplay(calcByDiameter(D, getParams()));
+    }
+
+    // Обработчик изменения длины пользователем
+    function onInputFromLength(val) {
+      currentMaster = 'length';
+      const L = parseFloat(val) || 0;
+      recalculateAndDisplay(calcByLength(L, getParams()));
+    }
+
+    // Обработчик изменения веса пользователем
+    function onInputFromWeight(val) {
+      currentMaster = 'weight';
+      const M = parseFloat(val) || 0;
+      recalculateAndDisplay(calcByWeight(M, getParams()));
+    }
+
+    // Обработчик изменения базовых параметров полотна (W, t, rho, d, k)
+    function onBaseParamChanged() {
+      const p = getParams();
+      let res;
+      if (currentMaster === 'diameter') {
+        const D = parseFloat(document.getElementById('inp-diam').value) || 0;
+        res = calcByDiameter(D, p);
+      } else if (currentMaster === 'length') {
+        const L = parseFloat(document.getElementById('inp-len').value) || 0;
+        res = calcByLength(L, p);
+      } else {
+        const M = parseFloat(document.getElementById('inp-weight').value) || 0;
+        res = calcByWeight(M, p);
+      }
+      recalculateAndDisplay(res);
+    }
+
+    // Единый рендер результатов на экране
+    function recalculateAndDisplay(res) {
+      const p = getParams();
+      const D = res.D || 0;
+      const L = res.L || 0;
+      const M = res.M || 0;
+
+      // Обновляем поля ввода (кроме того, которое пользователь редактирует прямо сейчас)
+      if (currentMaster !== 'diameter') {
+        document.getElementById('inp-diam').value = D ? Math.round(D) : '';
+      }
+      if (currentMaster !== 'length') {
+        document.getElementById('inp-len').value = L ? Math.round(L) : '';
+      }
+      if (currentMaster !== 'weight') {
+        document.getElementById('inp-weight').value = M ? M.toFixed(2) : '';
+      }
+
+      // Обновляем карточки результатов
+      document.getElementById('out-weight').innerText = M > 0 ? M.toFixed(2) : "0.00";
+      document.getElementById('out-diameter').innerText = D > 0 ? Math.round(D) : "0";
+      document.getElementById('out-length').innerText = L > 0 ? Math.round(L) : "0";
+
+      // Вспомогательные данные
+      const area = L * (p.w / 1000);
+      document.getElementById('out-sub-diameter').innerText = `${Math.round(D)} мм`;
+      document.getElementById('out-sub-area').innerText = `${area.toFixed(1)} м²`;
+
+      const wallThick = Math.max(0, (D - p.d) / 2);
+      document.getElementById('out-wall-thick').innerText = `${Math.round(wallThick)} мм`;
+      document.getElementById('out-radius').innerText = `${Math.round(D / 2)} мм`;
+
+      document.getElementById('out-km').innerText = `${(L / 1000).toFixed(2)} км`;
+      document.getElementById('out-total-sqm').innerText = `${area.toFixed(1)} м²`;
+
+      // Визуализация сечения
+      updateVisuals(D, p.d);
+    }
+
+    function updateVisuals(D, d) {
+      document.getElementById('vis-outer-label').innerText = `${Math.round(D)} мм`;
+      document.getElementById('vis-inner-label').innerText = `${Math.round(d)} мм`;
+
+      const maxContainerSize = 176;
+      if (D <= d || D <= 0) {
+        document.getElementById('vis-inner-circle').style.width = '56px';
+        document.getElementById('vis-inner-circle').style.height = '56px';
+        return;
+      }
+      const ratio = Math.max(0.18, Math.min(0.8, d / D));
+      const innerPx = Math.round(maxContainerSize * ratio);
+      document.getElementById('vis-inner-circle').style.width = `${innerPx}px`;
+      document.getElementById('vis-inner-circle').style.height = `${innerPx}px`;
+    }
+
+    function setPreset(name, density, btn) {
+      if (density !== null) {
+        document.getElementById('inp-density').value = density;
+        onBaseParamChanged();
+      }
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.classList.remove('border-sky-500', 'bg-sky-950/40');
+      });
+      if (btn) btn.classList.add('border-sky-500', 'bg-sky-950/40');
+    }
+
+    function applyCoreSelect() {
+      const val = document.getElementById('sel-core').value;
+      if (val !== 'other') {
+        document.getElementById('inp-core').value = val;
+        onBaseParamChanged();
+      }
+    }
+
+    // --- ЖУРНАЛ И СОХРАНЕНИЕ ---
+    function saveCurrentRollToDatabase() {
+      const p = getParams();
+      const D = parseFloat(document.getElementById('out-diameter').innerText) || 0;
+      const L = parseFloat(document.getElementById('out-length').innerText) || 0;
+      const M = parseFloat(document.getElementById('out-weight').innerText) || 0;
+      const batchName = document.getElementById('inp-batch-name').value.trim() || `Рулон #${localRolls.length + 1}`;
+
+      const rollItem = {
+        name: batchName,
+        width: p.w,
+        thickness: p.t,
+        density: p.rho,
+        core: p.d,
+        kFactor: p.k,
+        diameter: D,
+        length: L,
+        weight: M,
+        timestamp: Date.now(),
+        dateStr: new Date().toLocaleDateString('ru-RU') + ' ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      if (db) {
+        db.collection("rolls").add(rollItem).catch(() => saveLocally(rollItem));
+      } else {
+        saveLocally(rollItem);
+      }
+
+      const btn = event.currentTarget;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Записано!';
+      setTimeout(() => btn.innerHTML = orig, 1200);
+    }
+
+    function saveLocally(item) {
+      item.id = 'loc_' + Date.now();
+      localRolls.unshift(item);
+      renderJournal();
+    }
+
+    function deleteRoll(id) {
+      if (db && !id.startsWith('loc_')) {
+        db.collection("rolls").doc(id).delete();
+      } else {
+        localRolls = localRolls.filter(r => r.id !== id);
+        renderJournal();
+      }
+    }
+
+    function clearBatch() {
+      if (!confirm("Удалить все записи из журнала?")) return;
+      if (db) {
+        db.collection("rolls").get().then(s => s.forEach(doc => doc.ref.delete()));
+      }
+      localRolls = [];
+      renderJournal();
+    }
+
+    function renderJournal() {
+      const tbody = document.getElementById('journalTableBody');
+      const mobileList = document.getElementById('journalMobileList');
+      const emptyState = document.getElementById('journalEmptyState');
+
+      const count = localRolls.length;
+      document.getElementById('journalCountBadge').innerText = count;
+      document.getElementById('mobBadgeCount').innerText = count;
+
+      if (count === 0) {
+        tbody.innerHTML = '';
+        mobileList.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      tbody.innerHTML = localRolls.map(r => `
+        <tr class="hover:bg-slate-800/60 transition-colors">
+          <td class="py-3 px-3 font-semibold text-white">${escapeHtml(r.name)}</td>
+          <td class="py-3 px-3 text-slate-300">${r.width}</td>
+          <td class="py-3 px-3 text-slate-300">${r.thickness}</td>
+          <td class="py-3 px-3 text-emerald-400 font-bold">${Math.round(r.diameter)}</td>
+          <td class="py-3 px-3 text-purple-400 font-bold">${Math.round(r.length)}</td>
+          <td class="py-3 px-3 text-sky-400 font-bold">${Number(r.weight).toFixed(2)}</td>
+          <td class="py-3 px-3 text-slate-400 text-[11px]">${r.dateStr || ''}</td>
+          <td class="py-3 px-3 text-right">
+            <button onclick="deleteRoll('${r.id}')" class="p-1.5 hover:text-rose-400 text-slate-500 transition-colors">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      mobileList.innerHTML = localRolls.map(r => `
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-700 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-sm">${escapeHtml(r.name)}</span>
+            <span class="text-[10px] text-slate-400 font-mono">${r.dateStr || ''}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 py-2 border-y border-slate-800 text-center font-mono">
+            <div>
+              <span class="text-[10px] text-slate-500 block">Диаметр</span>
+              <span class="text-sm font-bold text-emerald-400">${Math.round(r.diameter)} мм</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Длина</span>
+              <span class="text-sm font-bold text-purple-400">${Math.round(r.length)} м</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Вес нетто</span>
+              <span class="text-sm font-bold text-sky-400">${Number(r.weight).toFixed(1)} кг</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-1 text-xs text-slate-400">
+            <span>W: ${r.width}мм | t: ${r.thickness}мкм</span>
+            <button onclick="deleteRoll('${r.id}')" class="text-rose-400 text-xs px-2 py-1 rounded bg-rose-500/10">
+              <i class="fa-solid fa-trash-can"></i> Удалить
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function exportBatchToCSV() {
+      if (localRolls.length === 0) {
+        alert("Журнал пуст!");
+        return;
+      }
+      let csv = "ID,Маркировка,Ширина_мм,Толщина_мкм,Плотность,Шпуля_мм,Диаметр_мм,Длина_м,Вес_кг,Дата\n";
+      localRolls.forEach(r => {
+        csv += `"${r.id}","${r.name}",${r.width},${r.thickness},${r.density},${r.core},${r.diameter},${r.length},${r.weight},"${r.dateStr}"\n`;
+      });
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Партия_рулонов_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // --- НАВИГАЦИЯ ПО ВКЛАДКАМ ---
+    function switchTab(tabId) {
+      ['calc', 'journal', 'help'].forEach(id => {
+        document.getElementById(`view-${id}`).classList.toggle('hidden', id !== tabId);
+
+        const btn = document.getElementById(`tabBtn-${id}`);
+        if (btn) {
+          btn.className = (id === tabId)
+            ? "py-2.5 border-b-2 border-sky-500 text-sky-400 text-sm font-semibold flex items-center gap-2"
+            : "py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-medium flex items-center gap-2";
+        }
+
+        const mobBtn = document.getElementById(`mobTab-${id}`);
+        if (mobBtn) {
+          mobBtn.className = (id === tabId)
+            ? "flex flex-col items-center gap-1 text-sky-400"
+            : "flex flex-col items-center gap-1 text-slate-400";
+        }
+      });
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
-      App.init();
+      onInputFromDiameter(500);
     });
   </script>
 </body>
