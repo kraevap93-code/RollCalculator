@@ -72,7 +72,7 @@
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold text-white tracking-tight leading-tight">Калькулятор Рулонов</h1>
-          <p class="text-xs text-slate-400 font-mono hidden sm:block">Точный физический расчёт полимерных плёнок</p>
+          <p class="text-xs text-slate-400 font-mono hidden sm:block">Точный физический расчёт с учётом стенки гильзы</p>
         </div>
       </div>
 
@@ -138,7 +138,7 @@
             <span class="text-[11px] text-slate-300 font-mono">1.400</span>
           </button>
           <button type="button" onclick="setPreset('Свой', null, this)" class="preset-btn px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-sky-600/30 text-left border border-slate-600/50 hover:border-sky-500 transition-all flex flex-col">
-            <span class="text-xs font-semibold text-white">Свой вариант</span>
+            <span class="text-xs font-semibold text-white">Свой</span>
             <span class="text-[11px] text-slate-300 font-mono">ручной ввод</span>
           </button>
         </div>
@@ -146,11 +146,11 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- ЛЕВАЯ КОЛОНКА: ВХОДНЫЕ ПАРАМЕТРЫ МАТЕРИАЛА И ВТУЛКИ -->
+        <!-- ЛЕВАЯ КОЛОНКА: ВХОДНЫЕ ПАРАМЕТРЫ -->
         <div class="lg:col-span-5 space-y-5">
           <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg space-y-4">
             <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-700/60 pb-3">
-              <i class="fa-solid fa-ruler-combined text-sky-400"></i> Геометрия полотна и втулка
+              <i class="fa-solid fa-ruler-combined text-sky-400"></i> Параметры полотна и шпули
             </h3>
 
             <div class="grid grid-cols-2 gap-4">
@@ -163,7 +163,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Толщина (t)</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Толщина плёнки (t)</label>
                 <div class="relative">
                   <input type="number" id="inp-thickness" value="50" step="any" min="0.1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">мкм</span>
@@ -171,9 +171,41 @@
               </div>
             </div>
 
+            <!-- ВТУЛКА: ВНУТРЕННИЙ ДИАМЕТР И ТОЛЩИНА СТЕНКИ -->
+            <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/70 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+                  <i class="fa-solid fa-ring"></i> Параметры гильзы (шпули)
+                </span>
+                <span id="badge-outer-core" class="text-[11px] font-mono text-amber-300 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded">
+                  D внеш: 96 мм
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Внутр. посадка (d):</label>
+                  <select id="sel-core" onchange="applyCoreSelect()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white outline-none">
+                    <option value="76" selected>76 мм (3")</option>
+                    <option value="152">152 мм (6")</option>
+                    <option value="other">Свой диаметр</option>
+                  </select>
+                  <input type="number" id="inp-core" value="76" step="any" min="1" oninput="onBaseParamChanged()" class="hidden mt-1.5 w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono outline-none">
+                </div>
+
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Стенка гильзы (s):</label>
+                  <div class="relative">
+                    <input type="number" id="inp-core-wall" value="10" step="any" min="0" oninput="onBaseParamChanged()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white font-mono text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                    <span class="absolute right-2.5 top-2 text-[11px] text-slate-400 font-mono">мм</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Плотность (ρ)</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Плотность плёнки (ρ)</label>
                 <div class="relative">
                   <input type="number" id="inp-density" value="0.905" step="0.001" min="0.1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">г/см³</span>
@@ -181,36 +213,16 @@
               </div>
 
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Диаметр шпули (d)</label>
-                <div class="flex gap-2">
-                  <select id="sel-core" onchange="applyCoreSelect()" class="w-1/2 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2.5 text-xs text-slate-300 outline-none">
-                    <option value="76" selected>76 мм (3")</option>
-                    <option value="152">152 мм (6")</option>
-                    <option value="other">Свой</option>
-                  </select>
-                  <div class="relative w-1/2">
-                    <input type="number" id="inp-core" value="76" step="any" min="1" oninput="onBaseParamChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2.5 text-white font-mono text-base focus:ring-2 focus:ring-sky-500 outline-none">
-                    <span class="absolute right-2 top-2.5 text-xs text-slate-500 font-mono">мм</span>
-                  </div>
+                <div class="flex justify-between items-center text-xs mb-1">
+                  <span class="font-medium text-slate-400">Фактор намотки (k):</span>
+                  <span id="label-kfactor" class="font-mono text-sky-400 font-semibold">1.00</span>
                 </div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between items-center text-xs mb-1">
-                <span class="font-medium text-slate-400">Фактор плотности намотки (k):</span>
-                <span id="label-kfactor" class="font-mono text-sky-400 font-semibold">1.00</span>
-              </div>
-              <input type="range" id="inp-kfactor" min="0.85" max="1.15" step="0.01" value="1.00" oninput="document.getElementById('label-kfactor').innerText=parseFloat(this.value).toFixed(2); onBaseParamChanged();" class="w-full accent-sky-500 cursor-pointer">
-              <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-0.5">
-                <span>0.85 (рыхлая)</span>
-                <span>1.00 (теория)</span>
-                <span>1.15 (плотная)</span>
+                <input type="range" id="inp-kfactor" min="0.85" max="1.15" step="0.01" value="1.00" oninput="document.getElementById('label-kfactor').innerText=parseFloat(this.value).toFixed(2); onBaseParamChanged();" class="w-full accent-sky-500 cursor-pointer mt-2">
               </div>
             </div>
 
             <div class="pt-2 border-t border-slate-700/60">
-              <label class="block text-xs font-medium text-slate-400 mb-1">Маркировка рулона / партии (опционально)</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Маркировка партии / рулона</label>
               <input type="text" id="inp-batch-name" placeholder="Напр.: Рулон #1 (БОПП 50мкм)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none">
             </div>
 
@@ -219,33 +231,38 @@
             </button>
           </div>
 
-          <!-- Схематичный чертеж сечения рулона -->
+          <!-- Чертёж сечения рулона -->
           <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700/80 shadow-lg flex flex-col items-center justify-center">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 self-start">
-              <i class="fa-solid fa-circle-notch text-sky-400"></i> Сечение рулона в масштабе
+              <i class="fa-solid fa-circle-notch text-sky-400"></i> Сечение рулона и гильзы
             </span>
             <div class="relative w-48 h-48 flex items-center justify-center">
-              <div id="vis-outer-circle" class="w-44 h-44 rounded-full border-4 border-sky-500/80 bg-sky-950/30 flex items-center justify-center transition-all duration-300 shadow-inner">
-                <div id="vis-inner-circle" class="w-14 h-14 rounded-full border-2 border-amber-500 bg-amber-950/60 flex items-center justify-center transition-all duration-300">
-                  <span class="text-[9px] font-mono text-amber-300">втулка</span>
+              <div id="vis-outer-circle" class="w-44 h-44 rounded-full border-4 border-sky-500 bg-sky-950/30 flex items-center justify-center transition-all duration-300 shadow-inner">
+                <!-- Внешний контур гильзы со стенкой -->
+                <div id="vis-core-outer" class="w-20 h-20 rounded-full border-2 border-amber-500 bg-amber-900/50 flex items-center justify-center transition-all duration-300">
+                  <!-- Внутреннее отверстие посадки -->
+                  <div id="vis-core-inner" class="w-14 h-14 rounded-full border border-dashed border-amber-300 bg-slate-900 flex items-center justify-center">
+                    <span class="text-[8px] font-mono text-amber-300">вал</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="flex justify-between w-full text-[11px] font-mono text-slate-400 mt-2 px-4">
-              <span>Внешний: <b id="vis-outer-label" class="text-sky-300">500 мм</b></span>
-              <span>Втулка: <b id="vis-inner-label" class="text-amber-400">76 мм</b></span>
+            <div class="grid grid-cols-3 gap-2 w-full text-[10px] font-mono text-slate-400 mt-3 text-center px-1">
+              <div>Внешний D:<br><b id="vis-outer-label" class="text-sky-300 text-xs">500 мм</b></div>
+              <div>Шпуля внеш:<br><b id="vis-core-out-label" class="text-amber-400 text-xs">96 мм</b></div>
+              <div>Посадка d:<br><b id="vis-core-in-label" class="text-slate-300 text-xs">76 мм</b></div>
             </div>
           </div>
         </div>
 
-        <!-- ПРАВАЯ КОЛОНКА: РАСЧЁТНЫЕ КАРТОЧКИ С ВЗАИМНЫМ ПЕРЕСЧЁТОМ -->
+        <!-- ПРАВАЯ КОЛОНКА: РАСЧЁТЫ -->
         <div class="lg:col-span-7 space-y-4">
 
-          <!-- КАРТОЧКА 1: РАСЧЕТ ВЕСА НЕТТО -->
+          <!-- КАРТОЧКА 1: ВЕС НЕТТО И БРУТТО -->
           <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-weight-hanging"></i> Вес нетто рулона (кг)
+                <i class="fa-solid fa-weight-hanging"></i> Вес рулона (Нетто / Брутто)
               </span>
               <span class="text-xs px-2 py-0.5 rounded bg-sky-950/60 text-sky-300 font-mono border border-sky-800/50">Масса</span>
             </div>
@@ -261,78 +278,80 @@
               <div>
                 <label class="block text-xs text-slate-400 mb-1">Или по длине (L):</label>
                 <div class="relative">
-                  <input type="number" id="inp-len" placeholder="Напр.: 3836" step="any" min="1" oninput="onInputFromLength(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-sky-500 outline-none">
+                  <input type="number" id="inp-len" placeholder="Напр.: 3782" step="any" min="1" oninput="onInputFromLength(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-sky-500 outline-none">
                   <span class="absolute right-3 top-2 text-xs text-slate-500 font-mono">м</span>
                 </div>
               </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
-              <div>
-                <span class="text-xs text-slate-400 block mb-0.5">Итоговый вес нетто:</span>
-                <span id="out-weight" class="text-3xl sm:text-4xl font-extrabold text-sky-400 font-mono">229.14</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70">
+                <span class="text-xs text-slate-400 block mb-0.5">Чистый вес плёнки (Нетто):</span>
+                <span id="out-weight-netto" class="text-3xl font-extrabold text-sky-400 font-mono">225.91</span>
                 <span class="text-sm font-semibold text-slate-400 ml-1">кг</span>
               </div>
-              <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
-                <div>Диаметр: <span id="out-sub-diameter" class="text-slate-200">500 мм</span></div>
-                <div>Площадь: <span id="out-sub-area" class="text-slate-200">5063.9 м²</span></div>
+              <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70">
+                <span class="text-xs text-slate-400 block mb-0.5">Вес с гильзой (Брутто):</span>
+                <span id="out-weight-brutto" class="text-3xl font-extrabold text-amber-400 font-mono">228.94</span>
+                <span class="text-sm font-semibold text-slate-400 ml-1">кг</span>
+                <span id="out-core-weight" class="text-[11px] text-slate-500 block font-mono mt-0.5">гильза: ~3.03 кг</span>
               </div>
             </div>
           </div>
 
-          <!-- КАРТОЧКА 2: РАСЧЕТ ДИАМЕТРА РУЛОНА -->
+          <!-- КАРТОЧКА 2: ДИАМЕТР РУЛОНА -->
           <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-arrows-left-right-to-line"></i> Внешний габарит D (мм)
+                <i class="fa-solid fa-arrows-left-right-to-line"></i> Внешний диаметр D (мм)
               </span>
-              <span class="text-xs px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 font-mono border border-emerald-800/50">Диаметр</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 font-mono border border-emerald-800/50">Габарит D</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <div>
-                <label class="block text-xs text-slate-400 mb-1">По весу нетто (M):</label>
+                <label class="block text-xs text-slate-400 mb-1">По чистому весу нетто:</label>
                 <div class="relative">
-                  <input type="number" id="inp-weight" placeholder="Напр.: 229.14" step="any" min="0.1" oninput="onInputFromWeight(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-emerald-500 outline-none">
+                  <input type="number" id="inp-weight" placeholder="Напр.: 225.91" step="any" min="0.1" oninput="onInputFromWeight(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:border-emerald-500 outline-none">
                   <span class="absolute right-3 top-2 text-xs text-slate-500 font-mono">кг</span>
                 </div>
               </div>
               <div class="flex items-end">
-                <span class="text-xs text-slate-400 pb-2">При изменении веса пересчитываются диаметр и метраж</span>
+                <span class="text-xs text-slate-400 pb-2">При вводе веса нетто вычисляется точный габарит D и длина</span>
               </div>
             </div>
 
             <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
               <div>
-                <span class="text-xs text-slate-400 block mb-0.5">Внешний диаметр:</span>
+                <span class="text-xs text-slate-400 block mb-0.5">Внешний габарит:</span>
                 <span id="out-diameter" class="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">500</span>
                 <span class="text-sm font-semibold text-slate-400 ml-1">мм</span>
               </div>
               <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
-                <div>Стенка намотки: <span id="out-wall-thick" class="text-slate-200">212 мм</span></div>
-                <div>Радиус (R): <span id="out-radius" class="text-slate-200">250 мм</span></div>
+                <div>Стенка плёнки: <span id="out-film-wall" class="text-slate-200">202 мм</span></div>
+                <div>Начало намотки: <span id="out-wind-start" class="text-amber-400">96 мм</span></div>
               </div>
             </div>
           </div>
 
-          <!-- КАРТОЧКА 3: РАСЧЕТ ДЛИНЫ ПОЛОТНА -->
+          <!-- КАРТОЧКА 3: ДЛИНА И ПЛОЩАДЬ -->
           <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-tape"></i> Длина полотна в рулоне (м)
+                <i class="fa-solid fa-tape"></i> Длина и площадь полотна
               </span>
               <span class="text-xs px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 font-mono border border-purple-800/50">Метраж L</span>
             </div>
 
             <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-baseline justify-between">
               <div>
-                <span class="text-xs text-slate-400 block mb-0.5">Длина в рулоне:</span>
-                <span id="out-length" class="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">3836</span>
-                <span class="text-sm font-semibold text-slate-400 ml-1">пог. м</span>
+                <span class="text-xs text-slate-400 block mb-0.5">Погонных метров:</span>
+                <span id="out-length" class="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">3782</span>
+                <span class="text-sm font-semibold text-slate-400 ml-1">м</span>
               </div>
               <div class="text-right text-xs font-mono text-slate-400 space-y-0.5">
-                <div>Километраж: <span id="out-km" class="text-slate-200">3.84 км</span></div>
-                <div>Площадь: <span id="out-total-sqm" class="text-slate-200">5063.9 м²</span></div>
+                <div>Километраж: <span id="out-km" class="text-slate-200">3.78 км</span></div>
+                <div>Площадь плёнки: <span id="out-total-sqm" class="text-slate-200">4992.5 м²</span></div>
               </div>
             </div>
           </div>
@@ -347,7 +366,7 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
           <div>
             <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-warehouse text-sky-400"></i> Журнал партии рулонов
+              <i class="fa-solid fa-warehouse text-sky-400"></i> Журнал рулонов партии
             </h2>
             <p class="text-xs text-slate-400">Синхронизировано с Firebase Cloud Firestore</p>
           </div>
@@ -368,11 +387,13 @@
                 <th class="py-3 px-3 rounded-l-lg">№ / Марка</th>
                 <th class="py-3 px-3">Ширина (мм)</th>
                 <th class="py-3 px-3">Толщина (мкм)</th>
+                <th class="py-3 px-3">Гильза (мм)</th>
                 <th class="py-3 px-3">Диаметр (мм)</th>
                 <th class="py-3 px-3">Длина (м)</th>
-                <th class="py-3 px-3">Вес нетто (кг)</th>
+                <th class="py-3 px-3">Нетто (кг)</th>
+                <th class="py-3 px-3">Брутто (кг)</th>
                 <th class="py-3 px-3">Дата</th>
-                <th class="py-3 px-3 text-right rounded-r-lg">Действия</th>
+                <th class="py-3 px-3 text-right rounded-r-lg">Удалить</th>
               </tr>
             </thead>
             <tbody id="journalTableBody" class="divide-y divide-slate-700/50 font-mono"></tbody>
@@ -383,7 +404,7 @@
 
         <div id="journalEmptyState" class="py-12 text-center text-slate-500 text-sm">
           <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-2 block"></i>
-          Рулонов в партии пока нет. Добавьте первый расчёт через калькулятор.
+          Рулонов в партии пока нет. Добавьте расчёт через кнопку выше.
         </div>
       </div>
     </div>
@@ -392,32 +413,32 @@
     <div id="view-help" class="hidden space-y-5">
       <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/80 shadow-lg space-y-4">
         <h2 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-square-root-variable text-sky-400"></i> Физические формулы калькулятора
+          <i class="fa-solid fa-square-root-variable text-sky-400"></i> Инженерные формулы расчёта
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 leading-relaxed">
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
-            <span class="font-bold text-sky-400 block text-sm">1. Длина намотки по диаметрам (D, d):</span>
-            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">L = (π × (D² - d²) × k) / (4 × t_мкм) [метры]</code>
-            <p>где D — наружный диаметр (мм), d — шпуля (мм), t — толщина (мкм), k — фактор намотки.</p>
+            <span class="font-bold text-amber-400 block text-sm">1. Учёт стенки шпули:</span>
+            <p>Фактический наружный диаметр шпули, с которого начинается намотка:</p>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">d_внеш = d_посадки + 2 × s_стенки [мм]</code>
+            <p>Для гильзы 76 мм со стенкой 10 мм намотка начинается строго с 96 мм.</p>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
-            <span class="font-bold text-sky-400 block text-sm">2. Наружный диаметр по длине (L):</span>
-            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">D = √( d² + (4 × L × t_мкм) / (π × k) ) [мм]</code>
-            <p>Вычисляет точный габарит рулона при заданном метраже.</p>
+            <span class="font-bold text-sky-400 block text-sm">2. Длина полотна (L):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">L = (π × (D² - d_внеш²) × k) / (4 × t_мкм) [метры]</code>
+            <p>где D — наружный диаметр рулона, t — толщина в мкм, k — фактор намотки.</p>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
-            <span class="font-bold text-sky-400 block text-sm">3. Вес нетто полотна (M):</span>
-            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">M = L × W_мм × t_мкм × ρ × 10⁻⁶ [кг]</code>
-            <p>где W — ширина (мм), ρ — плотность полимера (г/см³).</p>
+            <span class="font-bold text-sky-400 block text-sm">3. Вес нетто (M_нетто):</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">M_нетто = L × W_мм × t_мкм × ρ × 10⁻⁶ [кг]</code>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-700/70 space-y-2">
-            <span class="font-bold text-sky-400 block text-sm">4. Длина полотна по весу нетто (M):</span>
-            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">L = (M × 10⁶) / (W_мм × t_мкм × ρ) [метры]</code>
-            <p>Позволяет по взвешенному рулону узнать точный метраж и его внешний диаметр.</p>
+            <span class="font-bold text-amber-400 block text-sm">4. Вес гильзы и Брутто:</span>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">V_гильзы = (π/4) × (d_внеш² - d_внутр²) × W_мм</code>
+            <code class="block bg-slate-950 p-2 rounded text-slate-200 font-mono">M_брутто = M_нетто + M_гильзы [кг]</code>
           </div>
         </div>
       </div>
@@ -444,7 +465,6 @@
 
   <!-- СКРИПТЫ РАСЧЕТА И СИНХРОНИЗАЦИИ -->
   <script>
-    // --- ПАРАМЕТРЫ FIREBASE ---
     const firebaseConfig = { projectId: "rollcalculator" };
     let db = null;
     let localRolls = [];
@@ -467,102 +487,104 @@
       }, err => console.warn(err));
     }
 
-    // --- ФИЗИЧЕСКИЙ ДВИЖОК РАСЧЕТОВ ---
-    // Режим последнего активного ввода: 'diameter' | 'length' | 'weight'
+    // Режим ввода: 'diameter' | 'length' | 'weight'
     let currentMaster = 'diameter';
 
     function getParams() {
+      const coreInner = parseFloat(document.getElementById('inp-core').value) || 76;
+      const coreWall = parseFloat(document.getElementById('inp-core-wall').value) || 0;
+      const coreOuter = coreInner + 2 * coreWall;
+
       return {
         w: parseFloat(document.getElementById('inp-width').value) || 0,
         t: parseFloat(document.getElementById('inp-thickness').value) || 0,
         rho: parseFloat(document.getElementById('inp-density').value) || 0,
-        d: parseFloat(document.getElementById('inp-core').value) || 76,
+        dInner: coreInner,
+        wall: coreWall,
+        dOuter: coreOuter,
         k: parseFloat(document.getElementById('inp-kfactor').value) || 1.0
       };
     }
 
-    // Расчет L и M по диаметру D
-    function calcByDiameter(D, p) {
-      if (D <= p.d || !p.t || !p.w || !p.rho) {
-        return { D: D, L: 0, M: 0 };
-      }
-      // L = (pi * (D^2 - d^2) * k) / (4 * t_um) в метрах
-      const L = (Math.PI * (D * D - p.d * p.d) * p.k) / (4 * p.t);
-      // M = L * W * t * rho * 1e-6 в кг
-      const M = L * p.w * p.t * p.rho * 1e-6;
-      return { D, L, M };
+    // Расчет веса картонной гильзы
+    function calcCoreWeight(p) {
+      if (p.dOuter <= p.dInner || p.w <= 0) return 0;
+      // Плотность картона шпули ~0.85 г/см³ (0.85 * 1e-6 кг/мм³)
+      const coreArea_mm2 = (Math.PI / 4) * (p.dOuter * p.dOuter - p.dInner * p.dInner);
+      const coreVol_mm3 = coreArea_mm2 * p.w;
+      return coreVol_mm3 * 0.85 * 1e-6; // кг
     }
 
-    // Расчет D и M по длине L
+    // 1. По диаметру D
+    function calcByDiameter(D, p) {
+      if (D <= p.dOuter || !p.t || !p.w || !p.rho) {
+        return { D: D, L: 0, M_net: 0 };
+      }
+      const L = (Math.PI * (D * D - p.dOuter * p.dOuter) * p.k) / (4 * p.t);
+      const M_net = L * p.w * p.t * p.rho * 1e-6;
+      return { D, L, M_net };
+    }
+
+    // 2. По длине L
     function calcByLength(L, p) {
       if (L <= 0 || !p.t || !p.w || !p.rho) {
-        return { D: p.d, L: L, M: 0 };
+        return { D: p.dOuter, L: L, M_net: 0 };
       }
-      // D = sqrt(d^2 + (4 * L * t_um) / (pi * k)) в мм
-      const D2 = (p.d * p.d) + (4 * L * p.t) / (Math.PI * p.k);
+      const D2 = (p.dOuter * p.dOuter) + (4 * L * p.t) / (Math.PI * p.k);
       const D = Math.sqrt(Math.max(0, D2));
-      const M = L * p.w * p.t * p.rho * 1e-6;
-      return { D, L, M };
+      const M_net = L * p.w * p.t * p.rho * 1e-6;
+      return { D, L, M_net };
     }
 
-    // Расчет L и D по весу M
-    function calcByWeight(M, p) {
-      if (M <= 0 || !p.t || !p.w || !p.rho) {
-        return { D: p.d, L: 0, M: M };
+    // 3. По весу нетто M_net
+    function calcByWeight(M_net, p) {
+      if (M_net <= 0 || !p.t || !p.w || !p.rho) {
+        return { D: p.dOuter, L: 0, M_net: M_net };
       }
-      // L = (M * 1e6) / (W * t * rho) в метрах
-      const L = (M * 1e6) / (p.w * p.t * p.rho);
-      const D2 = (p.d * p.d) + (4 * L * p.t) / (Math.PI * p.k);
+      const L = (M_net * 1e6) / (p.w * p.t * p.rho);
+      const D2 = (p.dOuter * p.dOuter) + (4 * L * p.t) / (Math.PI * p.k);
       const D = Math.sqrt(Math.max(0, D2));
-      return { D, L, M };
+      return { D, L, M_net };
     }
 
-    // Обработчик изменения диаметра пользователем
     function onInputFromDiameter(val) {
       currentMaster = 'diameter';
-      const D = parseFloat(val) || 0;
-      recalculateAndDisplay(calcByDiameter(D, getParams()));
+      recalculateAndDisplay(calcByDiameter(parseFloat(val) || 0, getParams()));
     }
 
-    // Обработчик изменения длины пользователем
     function onInputFromLength(val) {
       currentMaster = 'length';
-      const L = parseFloat(val) || 0;
-      recalculateAndDisplay(calcByLength(L, getParams()));
+      recalculateAndDisplay(calcByLength(parseFloat(val) || 0, getParams()));
     }
 
-    // Обработчик изменения веса пользователем
     function onInputFromWeight(val) {
       currentMaster = 'weight';
-      const M = parseFloat(val) || 0;
-      recalculateAndDisplay(calcByWeight(M, getParams()));
+      recalculateAndDisplay(calcByWeight(parseFloat(val) || 0, getParams()));
     }
 
-    // Обработчик изменения базовых параметров полотна (W, t, rho, d, k)
     function onBaseParamChanged() {
       const p = getParams();
+      document.getElementById('badge-outer-core').innerText = `D внеш: ${Math.round(p.dOuter)} мм`;
+
       let res;
       if (currentMaster === 'diameter') {
-        const D = parseFloat(document.getElementById('inp-diam').value) || 0;
-        res = calcByDiameter(D, p);
+        res = calcByDiameter(parseFloat(document.getElementById('inp-diam').value) || 0, p);
       } else if (currentMaster === 'length') {
-        const L = parseFloat(document.getElementById('inp-len').value) || 0;
-        res = calcByLength(L, p);
+        res = calcByLength(parseFloat(document.getElementById('inp-len').value) || 0, p);
       } else {
-        const M = parseFloat(document.getElementById('inp-weight').value) || 0;
-        res = calcByWeight(M, p);
+        res = calcByWeight(parseFloat(document.getElementById('inp-weight').value) || 0, p);
       }
       recalculateAndDisplay(res);
     }
 
-    // Единый рендер результатов на экране
     function recalculateAndDisplay(res) {
       const p = getParams();
       const D = res.D || 0;
       const L = res.L || 0;
-      const M = res.M || 0;
+      const M_net = res.M_net || 0;
+      const coreWeight = calcCoreWeight(p);
+      const M_brutto = M_net + coreWeight;
 
-      // Обновляем поля ввода (кроме того, которое пользователь редактирует прямо сейчас)
       if (currentMaster !== 'diameter') {
         document.getElementById('inp-diam').value = D ? Math.round(D) : '';
       }
@@ -570,44 +592,47 @@
         document.getElementById('inp-len').value = L ? Math.round(L) : '';
       }
       if (currentMaster !== 'weight') {
-        document.getElementById('inp-weight').value = M ? M.toFixed(2) : '';
+        document.getElementById('inp-weight').value = M_net ? M_net.toFixed(2) : '';
       }
 
-      // Обновляем карточки результатов
-      document.getElementById('out-weight').innerText = M > 0 ? M.toFixed(2) : "0.00";
+      document.getElementById('out-weight-netto').innerText = M_net > 0 ? M_net.toFixed(2) : "0.00";
+      document.getElementById('out-weight-brutto').innerText = M_brutto > 0 ? M_brutto.toFixed(2) : "0.00";
+      document.getElementById('out-core-weight').innerText = `гильза: ~${coreWeight.toFixed(2)} кг`;
+
       document.getElementById('out-diameter').innerText = D > 0 ? Math.round(D) : "0";
       document.getElementById('out-length').innerText = L > 0 ? Math.round(L) : "0";
 
-      // Вспомогательные данные
+      const filmWall = Math.max(0, (D - p.dOuter) / 2);
+      document.getElementById('out-film-wall').innerText = `${Math.round(filmWall)} мм`;
+      document.getElementById('out-wind-start').innerText = `${Math.round(p.dOuter)} мм`;
+
       const area = L * (p.w / 1000);
-      document.getElementById('out-sub-diameter').innerText = `${Math.round(D)} мм`;
-      document.getElementById('out-sub-area').innerText = `${area.toFixed(1)} м²`;
-
-      const wallThick = Math.max(0, (D - p.d) / 2);
-      document.getElementById('out-wall-thick').innerText = `${Math.round(wallThick)} мм`;
-      document.getElementById('out-radius').innerText = `${Math.round(D / 2)} мм`;
-
       document.getElementById('out-km').innerText = `${(L / 1000).toFixed(2)} км`;
       document.getElementById('out-total-sqm').innerText = `${area.toFixed(1)} м²`;
 
-      // Визуализация сечения
-      updateVisuals(D, p.d);
+      updateVisuals(D, p.dOuter, p.dInner);
     }
 
-    function updateVisuals(D, d) {
+    function updateVisuals(D, dOut, dIn) {
       document.getElementById('vis-outer-label').innerText = `${Math.round(D)} мм`;
-      document.getElementById('vis-inner-label').innerText = `${Math.round(d)} мм`;
+      document.getElementById('vis-core-out-label').innerText = `${Math.round(dOut)} мм`;
+      document.getElementById('vis-core-in-label').innerText = `${Math.round(dIn)} мм`;
 
       const maxContainerSize = 176;
-      if (D <= d || D <= 0) {
-        document.getElementById('vis-inner-circle').style.width = '56px';
-        document.getElementById('vis-inner-circle').style.height = '56px';
+      if (D <= dOut || D <= 0) {
+        document.getElementById('vis-core-outer').style.width = '72px';
+        document.getElementById('vis-core-outer').style.height = '72px';
         return;
       }
-      const ratio = Math.max(0.18, Math.min(0.8, d / D));
-      const innerPx = Math.round(maxContainerSize * ratio);
-      document.getElementById('vis-inner-circle').style.width = `${innerPx}px`;
-      document.getElementById('vis-inner-circle').style.height = `${innerPx}px`;
+      const ratioOut = Math.max(0.22, Math.min(0.85, dOut / D));
+      const pxOut = Math.round(maxContainerSize * ratioOut);
+      document.getElementById('vis-core-outer').style.width = `${pxOut}px`;
+      document.getElementById('vis-core-outer').style.height = `${pxOut}px`;
+
+      const ratioIn = Math.max(0.4, Math.min(0.85, dIn / dOut));
+      const pxIn = Math.round(pxOut * ratioIn);
+      document.getElementById('vis-core-inner').style.width = `${pxIn}px`;
+      document.getElementById('vis-core-inner').style.height = `${pxIn}px`;
     }
 
     function setPreset(name, density, btn) {
@@ -622,19 +647,30 @@
     }
 
     function applyCoreSelect() {
-      const val = document.getElementById('sel-core').value;
-      if (val !== 'other') {
-        document.getElementById('inp-core').value = val;
-        onBaseParamChanged();
+      const sel = document.getElementById('sel-core').value;
+      const inp = document.getElementById('inp-core');
+      const wallInp = document.getElementById('inp-core-wall');
+
+      if (sel === '76') {
+        inp.value = 76;
+        inp.classList.add('hidden');
+        wallInp.value = 10;
+      } else if (sel === '152') {
+        inp.value = 152;
+        inp.classList.add('hidden');
+        wallInp.value = 12;
+      } else {
+        inp.classList.remove('hidden');
       }
+      onBaseParamChanged();
     }
 
-    // --- ЖУРНАЛ И СОХРАНЕНИЕ ---
     function saveCurrentRollToDatabase() {
       const p = getParams();
       const D = parseFloat(document.getElementById('out-diameter').innerText) || 0;
       const L = parseFloat(document.getElementById('out-length').innerText) || 0;
-      const M = parseFloat(document.getElementById('out-weight').innerText) || 0;
+      const M_net = parseFloat(document.getElementById('out-weight-netto').innerText) || 0;
+      const M_brut = parseFloat(document.getElementById('out-weight-brutto').innerText) || 0;
       const batchName = document.getElementById('inp-batch-name').value.trim() || `Рулон #${localRolls.length + 1}`;
 
       const rollItem = {
@@ -642,11 +678,14 @@
         width: p.w,
         thickness: p.t,
         density: p.rho,
-        core: p.d,
+        coreInner: p.dInner,
+        coreWall: p.wall,
+        coreOuter: p.dOuter,
         kFactor: p.k,
         diameter: D,
         length: L,
-        weight: M,
+        weightNetto: M_net,
+        weightBrutto: M_brut,
         timestamp: Date.now(),
         dateStr: new Date().toLocaleDateString('ru-RU') + ' ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
       };
@@ -709,9 +748,11 @@
           <td class="py-3 px-3 font-semibold text-white">${escapeHtml(r.name)}</td>
           <td class="py-3 px-3 text-slate-300">${r.width}</td>
           <td class="py-3 px-3 text-slate-300">${r.thickness}</td>
+          <td class="py-3 px-3 text-amber-300">${r.coreInner || 76}+${r.coreWall || 10}мм</td>
           <td class="py-3 px-3 text-emerald-400 font-bold">${Math.round(r.diameter)}</td>
           <td class="py-3 px-3 text-purple-400 font-bold">${Math.round(r.length)}</td>
-          <td class="py-3 px-3 text-sky-400 font-bold">${Number(r.weight).toFixed(2)}</td>
+          <td class="py-3 px-3 text-sky-400 font-bold">${Number(r.weightNetto || r.weight || 0).toFixed(2)}</td>
+          <td class="py-3 px-3 text-amber-400 font-bold">${Number(r.weightBrutto || 0).toFixed(2)}</td>
           <td class="py-3 px-3 text-slate-400 text-[11px]">${r.dateStr || ''}</td>
           <td class="py-3 px-3 text-right">
             <button onclick="deleteRoll('${r.id}')" class="p-1.5 hover:text-rose-400 text-slate-500 transition-colors">
@@ -737,12 +778,12 @@
               <span class="text-sm font-bold text-purple-400">${Math.round(r.length)} м</span>
             </div>
             <div>
-              <span class="text-[10px] text-slate-500 block">Вес нетто</span>
-              <span class="text-sm font-bold text-sky-400">${Number(r.weight).toFixed(1)} кг</span>
+              <span class="text-[10px] text-slate-500 block">Нетто</span>
+              <span class="text-sm font-bold text-sky-400">${Number(r.weightNetto || r.weight || 0).toFixed(1)} кг</span>
             </div>
           </div>
           <div class="flex items-center justify-between pt-1 text-xs text-slate-400">
-            <span>W: ${r.width}мм | t: ${r.thickness}мкм</span>
+            <span>W: ${r.width}мм | Гильза: ${r.coreInner || 76}+${r.coreWall || 10}мм</span>
             <button onclick="deleteRoll('${r.id}')" class="text-rose-400 text-xs px-2 py-1 rounded bg-rose-500/10">
               <i class="fa-solid fa-trash-can"></i> Удалить
             </button>
@@ -762,9 +803,9 @@
         alert("Журнал пуст!");
         return;
       }
-      let csv = "ID,Маркировка,Ширина_мм,Толщина_мкм,Плотность,Шпуля_мм,Диаметр_мм,Длина_м,Вес_кг,Дата\n";
+      let csv = "ID,Маркировка,Ширина_мм,Толщина_мкм,Плотность,Шпуля_внутр_мм,Стенка_мм,Диаметр_мм,Длина_м,Нетто_кг,Брутто_кг,Дата\n";
       localRolls.forEach(r => {
-        csv += `"${r.id}","${r.name}",${r.width},${r.thickness},${r.density},${r.core},${r.diameter},${r.length},${r.weight},"${r.dateStr}"\n`;
+        csv += `"${r.id}","${r.name}",${r.width},${r.thickness},${r.density},${r.coreInner || 76},${r.coreWall || 10},${r.diameter},${r.length},${r.weightNetto || r.weight || 0},${r.weightBrutto || 0},"${r.dateStr}"\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -775,7 +816,6 @@
       URL.revokeObjectURL(url);
     }
 
-    // --- НАВИГАЦИЯ ПО ВКЛАДКАМ ---
     function switchTab(tabId) {
       ['calc', 'journal', 'help'].forEach(id => {
         document.getElementById(`view-${id}`).classList.toggle('hidden', id !== tabId);
@@ -797,7 +837,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      onInputFromDiameter(500);
+      onBaseParamChanged();
     });
   </script>
 </body>
